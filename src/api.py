@@ -9,14 +9,14 @@ import config
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
 
-def DoRequest(url, parameters=None, retryTime=5, successCount=0, errorCount=0, retries=0):
+def DoRequest(url, parameters=None, retryTime=5, successCount=0, errorCount=0, retries=0, headers=None):
     '''
     Makes a Web request. If an error occurs, retry.
     '''
     response = None
     try:
-        # Make request with allow_redirects=True to follow redirects
-        response = requests.get(url=url, params=parameters, timeout=config.DEFAULT_TIMEOUT, allow_redirects=True)
+        # Make request with custom headers
+        response = requests.get(url=url, params=parameters, timeout=config.DEFAULT_TIMEOUT, allow_redirects=True, headers=headers)
         response.raise_for_status()  # Raise HTTPError for bad responses
     except (HTTPError, ConnectionError, Timeout, RequestException, SSLError) as ex:
         Log(config.EXCEPTION, f'An exception of type {type(ex).__name__} occurred: {ex}')
@@ -39,13 +39,12 @@ def DoRequest(url, parameters=None, retryTime=5, successCount=0, errorCount=0, r
                 Log(config.WARNING, f'Request failed, retrying in {retryTime} seconds.')
 
             time.sleep(retryTime)
-            return DoRequest(url, parameters, retryTime, successCount, errorCount, retries)
+            return DoRequest(url, parameters, retryTime, successCount, errorCount, retries, headers)
         else:
             print('[!] No more retries.')
             sys.exit()
 
     return response
-
 
 def SteamRequest(appID, retryTime, successRequestCount, errorRequestCount, retries, currency=config.DEFAULT_CURRENCY, language=config.DEFAULT_LANGUAGE):
   '''
@@ -75,24 +74,30 @@ def SteamRequest(appID, retryTime, successRequestCount, errorRequestCount, retri
     return None
 
 def SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, retries):
-  '''
-  Request and parse information about a Steam app using SteamSpy.
-  '''
-  url = f"https://steamspy.com/api.php?request=appdetails&appid={appID}"
-  response = DoRequest(url, None, retryTime, successRequestCount, errorRequestCount, retries)
-  if response:
-    try:
-      data = response.json()
-      if data['developer'] != "":
-        return data
-      else:
+    '''
+    Request and parse information about a Steam app using SteamSpy.
+    '''
+    url = f"https://steamspy.com/api.php?request=appdetails&appid={appID}"
+    
+    # Define the headers including User-Agent
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    response = DoRequest(url, None, retryTime, successRequestCount, errorRequestCount, retries, headers)
+    if response:
+        try:
+            data = response.json()
+            if data.get('developer', "") != "":
+                return data
+            else:
+                return None
+        except Exception as ex:
+            Log(config.EXCEPTION, f'An exception of type {ex} occurred. Traceback: {traceback.format_exc()}')
+            return None
+    else:
+        Log(config.ERROR, 'Bad response')
         return None
-    except Exception as ex:
-      Log(config.EXCEPTION, f'An exception of type {ex} ocurred. Traceback: {traceback.format_exc()}')
-      return None
-  else:
-    Log(config.ERROR, 'Bad response')
-    return None
 
 def ParseSteamGame(app):
   '''
