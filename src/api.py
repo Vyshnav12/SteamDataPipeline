@@ -6,45 +6,46 @@ from ssl import SSLError
 import time
 import traceback
 import config
+from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
 
 def DoRequest(url, parameters=None, retryTime=5, successCount=0, errorCount=0, retries=0):
-  '''
-  Makes a Web request. If an error occurs, retry.
-  '''
-  response = None
-  try:
-    response = requests.get(url=url, params=parameters, timeout=config.DEFAULT_TIMEOUT)
-  except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError,
-          requests.exceptions.Timeout, requests.exceptions.RequestException,
-          SSLError) as ex:
-    Log(config.EXCEPTION, f'An exception of type {type(ex).__name__} ocurred.')
+    '''
+    Makes a Web request. If an error occurs, retry.
+    '''
     response = None
+    try:
+        # Make request with allow_redirects=True to follow redirects
+        response = requests.get(url=url, params=parameters, timeout=config.DEFAULT_TIMEOUT, allow_redirects=True)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+    except (HTTPError, ConnectionError, Timeout, RequestException, SSLError) as ex:
+        Log(config.EXCEPTION, f'An exception of type {type(ex).__name__} occurred: {ex}')
+        response = None
 
-  if response and response.status_code == 200:
-    errorCount = 0
-    successCount += 1
-    if successCount > retryTime:
-      retryTime = min(5, retryTime / 2)
-      successCount = 0
-  else:
-    if retries == 0 or errorCount < retries:
-      errorCount += 1
-      successCount = 0
-      retryTime = min(retryTime * 2, 500)
-      if response is not None:
-        Log(config.WARNING, f'{response.reason}, retrying in {retryTime} seconds')
-      else:
-        Log(config.WARNING, f'Request failed, retrying in {retryTime} seconds.')
-
-      time.sleep(retryTime)
-
-      return DoRequest(url, parameters, retryTime, successCount, errorCount, retries)
+    if response and response.status_code == 200:
+        errorCount = 0
+        successCount += 1
+        if successCount > retryTime:
+            retryTime = min(5, retryTime / 2)
+            successCount = 0
     else:
-      print('[!] No more retries.')
-      sys.exit()
+        if retries == 0 or errorCount < retries:
+            errorCount += 1
+            successCount = 0
+            retryTime = min(retryTime * 2, 500)
+            if response is not None:
+                Log(config.WARNING, f'{response.reason}, retrying in {retryTime} seconds')
+            else:
+                Log(config.WARNING, f'Request failed, retrying in {retryTime} seconds.')
 
-  return response
+            time.sleep(retryTime)
+            return DoRequest(url, parameters, retryTime, successCount, errorCount, retries)
+        else:
+            print('[!] No more retries.')
+            sys.exit()
+
+    return response
+
 
 def SteamRequest(appID, retryTime, successRequestCount, errorRequestCount, retries, currency=config.DEFAULT_CURRENCY, language=config.DEFAULT_LANGUAGE):
   '''
@@ -152,10 +153,6 @@ def ParseSteamGame(app):
   game['publishers'] = [publisher.strip() for publisher in app.get('publishers', [])]
   game['categories'] = [category.get('description', '') for category in app.get('categories', [])]
   game['genres'] = [genre.get('description', '') for genre in app.get('genres', [])]
-
-  # Exclude Screenshots and Movies
-  # game['screenshots'] = [screenshot.get('path_full', '') for screenshot in app.get('screenshots', [])]
-  # game['movies'] = [movie.get('mp4', {}).get('max', '') for movie in app.get('movies', [])]
 
   game['detailed_description'] = SanitizeText(game['detailed_description'])
   game['about_the_game'] = SanitizeText(game['about_the_game'])

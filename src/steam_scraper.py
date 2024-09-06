@@ -196,6 +196,7 @@ def UpdateFromJSON(dataset, notreleased, discarded, args):
 
 if __name__ == "__main__":
   Log(config.INFO, f'Steam Games Scraper {__version__} by {__author__}')
+  
   parser = argparse.ArgumentParser(description='Steam games scraper.')
   parser.add_argument('-i', '--infile',   type=str,   default=config.DEFAULT_OUTFILE,  help='Input file name')
   parser.add_argument('-o', '--outfile',  type=str,   default=config.DEFAULT_OUTFILE,  help='Output file name')
@@ -213,6 +214,7 @@ if __name__ == "__main__":
   if 'h' in args or 'help' in args:
     parser.print_help()
     sys.exit()
+    
 
   bucket_name = 'steamscraperbucket'
   dataset = load_from_s3(bucket_name, config.DEFAULT_OUTFILE)
