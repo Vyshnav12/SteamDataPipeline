@@ -89,6 +89,9 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
 
         start_time = dt.datetime.now()  # Record start time
 
+        chunk_size = 1000  # Adjust based on your memory constraints
+        chunk = {}
+
         for appID in apps:
             if appID not in dataset and appID not in discarded:
                 if args.released and appID in notreleased:
@@ -129,14 +132,16 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
                                     'tags': []
                                 })
 
-                        dataset[appID] = game
+                        chunk[appID] = game
                         gamesAdded += 1
 
                         if appID in notreleased:
                             notreleased.remove(appID)
 
-                        if args.autosave > 0 and gamesAdded % args.autosave == 0:
-                            save_to_s3(bucket_name, config.DEFAULT_OUTFILE, dataset)
+                        if len(chunk) >= chunk_size:
+                            save_to_s3(bucket_name, config.DEFAULT_OUTFILE, chunk)
+                            chunk.clear()  # Clear the chunk dictionary
+                            
                     else:
                         if appID not in notreleased:
                             notreleased.append(appID)
@@ -155,6 +160,10 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
                 time.sleep(args.sleep if random.random() > 0.1 else args.sleep * 2.0)
             count += 1
             ProgressLog('Scraping', count, total, start_time)
+
+        # Save any remaining data
+        if chunk:
+            save_to_s3(bucket_name, config.DEFAULT_OUTFILE, chunk)
 
         ProgressLog('Scraping', total, total, start_time)
         print('\r')
