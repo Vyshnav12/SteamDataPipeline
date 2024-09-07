@@ -69,7 +69,6 @@ To get started with SteamDataPipeline, you’ll need to:
 
 3. Set up your AWS credentials for S3 access in `~/.aws/credentials` (this project relies on S3 to store the data, no local data storage).
 
-
 ## Running the Scraper
 
 To run the scraper, navigate to the `src` directory and run the following command:
