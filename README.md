@@ -26,6 +26,9 @@ This pipeline is designed to efficiently scrape and process data from Steam and 
 
 - Modular architecture for easier maintenance and extensibility
 - Optimized for high-performance data collection
+- **Set-based lookups** for tracking `discarded` and `notreleased` AppIDs, improving the performance of AppID lookups.
+- **Manifest tracking** to avoid redundant API calls by saving all processed AppIDs, ensuring efficient updates.
+- Enhanced progress logging to display the percentage completion and elapsed time during the scraping process.
 - Improved code structure and documentation
 
 The project structure has been reorganized into logical components, facilitating easier updates and the addition of new functionalities.

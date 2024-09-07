@@ -14,18 +14,32 @@
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Modifications:
-# - Replaced saveJSON/loadJSON with function to load and save to Amazon S3.
-# - Modified `ParseSteamGame` function to be more readable, removed certain fields from being processed, and ensure missing fields are processed safely.
-# - Improved performance and error handling in the `Scraper` function.
-# - Added functionality to check Steam IDs against `applist.json` to avoid redundant API calls.
-# - Enhanced logging for better tracking of scraping progress and errors.
-# - Split functions into different files and organized imports.
-#
-# Modified by Vyshnav Varma <vyshnavvarma@gmail.com>
+# Modifications by Vyshnav Varma <vyshnavvarma@gmail.com>
 # Date: 01/09/2024
+#
+# 1. Performance Enhancements:
+#    - Implemented chunk-based JSON handling to mitigate memory issues on EC2 instances.
+#    - Introduced set-based lookups for AppIDs, improving lookup performance.
+#    - Optimized the `Scraper` function for better performance and error handling.
+#
+# 2. Data Management:
+#    - Added metadata index functions to reduce redundant API calls by caching processed AppIDs.
+#    - Implemented manifest tracking to manage chunk file data before combination.
+#    - Modified `ParseSteamGame` function to safely handle missing fields and exclude certain fields from processing.
+#
+# 3. AWS Integration:
+#    - Replaced saveJSON/loadJSON with functions to interact directly with Amazon S3.
+#
+# 4. Code Structure and Organization:
+#    - Improved overall code readability.
+#    - Split functions into separate files and reorganized imports for better maintainability.
+#
+# 5. Logging and Error Handling:
+#    - Enhanced logging system for better tracking of scraping progress and error reporting.
+#
+# These modifications aim to improve the scraper's efficiency, reliability, and maintainability,
+# particularly when deployed on AWS infrastructure.
 ########################################################################################################################
-
 __author__ = "Martin Bustos, Vyshnav Varma"
 __copyright__ = "Copyright 2022, Martin Bustos; 2024, Vyshnav Varma"
 __license__ = "MIT"
