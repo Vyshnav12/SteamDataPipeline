@@ -41,23 +41,26 @@ import datetime as dt
 import config
 
 from api import SteamRequest, SteamSpyRequest, DoRequest, ParseSteamGame
-from utils import load_from_s3, save_to_s3, ProgressLog, Log
+from utils import load_from_s3, save_to_s3, ProgressLog, Log, save_chunk_to_s3, merge_chunks, load_metadata_index, save_metadata_index, is_appID_present, update_metadata_index, list_chunk_filenames
 
 def Scraper(dataset, notreleased, discarded, args, appIDs=None):
     '''
-    Scrape Steam games.
+    Scrapes Steam and SteamSpy for game data and saves it to S3.
 
-    :param dataset: Dictionary with already scraped games.
-    :param notreleased: List of games that are not yet released.
-    :param discarded: List of games that are not games.
-    :param args: Arguments from the command line.
-    :param appIDs: List of games to scrape, if None, the list is requested to Steam.
-    :return: None
+    Args:
+        dataset (str): The name of the dataset to scrape.
+        notreleased (set): A set of appIDs that are not released.
+        discarded (set): A set of appIDs that are discarded.
+        args (argparse.Namespace): The command line arguments.
+        appIDs (list, optional): A list of appIDs to scrape. Defaults to None.
     '''
+    
+    bucket_name = 'steamscraperbucket'
+    metadata = load_metadata_index(bucket_name)  # Load existing metadata index as a set
+
     apps = []
     if appIDs is None:
         try:
-            # Try to load applist from S3
             apps = load_from_s3(bucket_name, config.APPLIST_FILE)
             if apps is None:
                 raise FileNotFoundError
@@ -69,12 +72,14 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
                 time.sleep(args.sleep)
                 data = response.json()
                 apps = [str(x["appid"]) for x in data['applist']['apps']]
-                
-                # Save the fetched list to S3
                 save_to_s3(bucket_name, config.APPLIST_FILE, apps)
                 Log(config.INFO, f'List with {len(apps)} games saved to S3.')
     else:
         apps = appIDs
+
+    # Convert notreleased and discarded to sets for faster lookups
+    notreleased_set = set(notreleased)
+    discarded_set = set(discarded)
 
     if apps:
         gamesAdded = 0
@@ -84,17 +89,17 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         errorRequestCount = 0
 
         random.shuffle(apps)
-        total = len(apps)
+        total = len(apps) - len(discarded_set) - len(notreleased_set)
         count = 0
 
-        start_time = dt.datetime.now()  # Record start time
-
-        chunk_size = 1000  # Adjust based on your memory constraints
+        start_time = dt.datetime.now()
+        chunk_size = 10000
         chunk = {}
+        manifest = load_from_s3(bucket_name, 'manifest.json') or {'chunks': []}
 
         for appID in apps:
-            if appID not in dataset and appID not in discarded:
-                if args.released and appID in notreleased:
+            if appID not in metadata and appID not in discarded_set:
+                if args.released and appID in notreleased_set:
                     continue
 
                 app = SteamRequest(appID, min(4, args.sleep), successRequestCount, errorRequestCount, args.retries)
@@ -134,53 +139,66 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
 
                         chunk[appID] = game
                         gamesAdded += 1
+                        count += 1
+                        ProgressLog('Scraping', count, total, start_time)
 
-                        if appID in notreleased:
-                            notreleased.remove(appID)
+                        if appID in notreleased_set:
+                            notreleased_set.remove(appID)
 
                         if len(chunk) >= chunk_size:
-                            save_to_s3(bucket_name, config.DEFAULT_OUTFILE, chunk)
-                            chunk.clear()  # Clear the chunk dictionary
-                            
+                            manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
+                            metadata = update_metadata_index(metadata, chunk)
+                            # Update metadata index
+                            Log(config.INFO, f'Updated metadata index with chunk. Current metadata size: {len(metadata)}')  # Log metadata size
+                            chunk.clear()
                     else:
-                        if appID not in notreleased:
-                            notreleased.append(appID)
+                        if appID not in notreleased_set:
+                            notreleased_set.add(appID)
                             gamesNotReleased += 1
 
                             if args.autosave > 0 and gamesNotReleased % args.autosave == 0:
-                                save_to_s3(bucket_name, config.NOTRELEASED_FILE, notreleased)
-                                
+                                save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
                 else:
-                    discarded.append(appID)
+                    discarded_set.add(appID)
                     gamesdiscarded += 1
 
                 if args.autosave > 0 and gamesdiscarded % args.autosave == 0:
-                    save_to_s3(bucket_name, config.DISCARDED_FILE, discarded)
+                    save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
 
                 time.sleep(args.sleep if random.random() > 0.1 else args.sleep * 2.0)
-            count += 1
-            ProgressLog('Scraping', count, total, start_time)
 
         # Save any remaining data
         if chunk:
-            save_to_s3(bucket_name, config.DEFAULT_OUTFILE, chunk)
+            manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
+            metadata = update_metadata_index(metadata, chunk)  # Update metadata index
 
         ProgressLog('Scraping', total, total, start_time)
         print('\r')
         Log(config.INFO, f'Scrape completed: {gamesAdded} new games added, {gamesNotReleased} not released, {gamesdiscarded} discarded')
-        save_to_s3(bucket_name, config.DEFAULT_OUTFILE, dataset)
-        save_to_s3(bucket_name, config.DISCARDED_FILE, discarded)
-        save_to_s3(bucket_name, config.NOTRELEASED_FILE, notreleased)
+        save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
+        save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
+
+        # Finalize metadata and chunk merge
+        save_metadata_index(bucket_name, metadata)
+        merge_chunks(bucket_name, config.DEFAULT_OUTFILE)
     else:
         Log(config.ERROR, 'Error requesting list of games')
         sys.exit()
 
 
 def UpdateFromJSON(dataset, notreleased, discarded, args):
-    '''
-    Update using APPIDs from a JSON file. The JSON file must be in the format:
-    {"applist": {"apps": [{"appid": "12345"}, {"appid": "67890"}, ...]}}
-    '''
+
+    """
+    Update the metadata index from a JSON file.
+    Args:
+        dataset (str): The name of the dataset to update.
+        notreleased (set): A set of appIDs that are not released.
+        discarded (set): A set of appIDs that are discarded.
+        args (argparse.Namespace): The command line arguments.
+
+    Returns:
+        None
+    """
     bucket_name = 'steamscraperbucket'
     applist_key = config.APPLIST_FILE
 
@@ -191,12 +209,19 @@ def UpdateFromJSON(dataset, notreleased, discarded, args):
         
         Log(config.INFO, f"Loaded {len(appIDs)} appIDs from '{applist_key}'")
 
-        # Filter out appIDs already present in dataset or discarded or notreleased
-        appIDs_to_update = [appID for appID in appIDs if appID not in dataset and appID not in discarded and appID not in notreleased]
+        # Load metadata index
+        metadata = load_metadata_index(bucket_name)
+
+        # Convert notreleased and discarded to sets for faster lookups
+        notreleased_set = set(notreleased)
+        discarded_set = set(discarded)
+
+        # Filter out appIDs already present in metadata, discarded, or notreleased
+        appIDs_to_update = [appID for appID in appIDs if not is_appID_present(metadata, appID) and appID not in discarded_set and appID not in notreleased_set]
 
         if len(appIDs_to_update) > 0:
             Log(config.INFO, f"New {len(appIDs_to_update)} appIDs to update")
-            Scraper(dataset, notreleased, discarded, args, appIDs_to_update)
+            Scraper(dataset, list(notreleased_set), list(discarded_set), args, appIDs_to_update)
         else:
             Log(config.WARNING, f'No new appIDs to update from {applist_key}')
     except Exception as e:
@@ -204,57 +229,58 @@ def UpdateFromJSON(dataset, notreleased, discarded, args):
 
 
 if __name__ == "__main__":
-  Log(config.INFO, f'Steam Games Scraper {__version__} by {__author__}')
+    Log(config.INFO, f'Steam Games Scraper {__version__} by {__author__}')
   
-  parser = argparse.ArgumentParser(description='Steam games scraper.')
-  parser.add_argument('-i', '--infile',   type=str,   default=config.DEFAULT_OUTFILE,  help='Input file name')
-  parser.add_argument('-o', '--outfile',  type=str,   default=config.DEFAULT_OUTFILE,  help='Output file name')
-  parser.add_argument('-s', '--sleep',    type=float, default=config.DEFAULT_SLEEP,    help='Waiting time between requests')
-  parser.add_argument('-r', '--retries',  type=int,   default=config.DEFAULT_RETRIES,  help='Number of retries (0 to always retry)')
-  parser.add_argument('-a', '--autosave', type=int,   default=config.DEFAULT_AUTOSAVE, help='Record the data every number of new entries (0 to deactivate)')
-  parser.add_argument('-d', '--released', type=bool,  default=True,             help='If it is on the list of not yet released, no information is requested')
-  parser.add_argument('-c', '--currency', type=str,   default=config.DEFAULT_CURRENCY, help='Currency code')
-  parser.add_argument('-l', '--language', type=str,   default=config.DEFAULT_LANGUAGE, help='Language code')
-  parser.add_argument('-p', '--steamspy', type=str,   default=True,             help='Add SteamSpy info')
-  parser.add_argument('-u', '--update',   type=str,   default='',               help='Update using APPIDs from a JSON file')
-  args = parser.parse_args()
-  random.seed(time.time())
+    parser = argparse.ArgumentParser(description='Steam games scraper.')
+    parser.add_argument('-i', '--infile',   type=str,   default=config.DEFAULT_OUTFILE,  help='Input file name')
+    parser.add_argument('-o', '--outfile',  type=str,   default=config.DEFAULT_OUTFILE,  help='Output file name')
+    parser.add_argument('-s', '--sleep',    type=float, default=config.DEFAULT_SLEEP,    help='Waiting time between requests')
+    parser.add_argument('-r', '--retries',  type=int,   default=config.DEFAULT_RETRIES,  help='Number of retries (0 to always retry)')
+    parser.add_argument('-a', '--autosave', type=int,   default=config.DEFAULT_AUTOSAVE, help='Record the data every number of new entries (0 to deactivate)')
+    parser.add_argument('-d', '--released', type=bool,  default=True,             help='If it is on the list of not yet released, no information is requested')
+    parser.add_argument('-c', '--currency', type=str,   default=config.DEFAULT_CURRENCY, help='Currency code')
+    parser.add_argument('-l', '--language', type=str,   default=config.DEFAULT_LANGUAGE, help='Language code')
+    parser.add_argument('-p', '--steamspy', type=bool,  default=True,             help='Add SteamSpy info')
+    parser.add_argument('-u', '--update',   type=str,   default='',               help='Update using APPIDs from a JSON file')
+    args = parser.parse_args()
+    random.seed(time.time())
 
-  if 'h' in args or 'help' in args:
-    parser.print_help()
-    sys.exit()
+    if 'h' in args or 'help' in args:
+        parser.print_help()
+        sys.exit()
     
+    bucket_name = 'steamscraperbucket'
 
-  bucket_name = 'steamscraperbucket'
-  dataset = load_from_s3(bucket_name, config.DEFAULT_OUTFILE)
-  discarded = load_from_s3(bucket_name, config.DISCARDED_FILE)
-  notreleased = load_from_s3(bucket_name, config.NOTRELEASED_FILE)
+    # Load metadata index and chunked data
+    metadata = load_metadata_index(bucket_name)
+    discarded = load_from_s3(bucket_name, config.DISCARDED_FILE) or []
+    notreleased = load_from_s3(bucket_name, config.NOTRELEASED_FILE) or []
 
-  if dataset is None:
+    # Convert lists to sets for faster lookups
+    discarded_set = set(discarded)
+    notreleased_set = set(notreleased)
+
+    # Initialize dataset
     dataset = {}
+    for chunk_file in list_chunk_filenames(bucket_name):
+        chunk = load_from_s3(bucket_name, chunk_file) or {}
+        dataset.update(chunk)
 
-  if discarded is None:
-    discarded = []
+    Log(config.INFO, f'Dataset loaded with {len(dataset)} games' if len(dataset) > 0 else 'New dataset created')
 
-  if notreleased is None:
-    notreleased = []
+    if len(notreleased_set) > 0:
+        Log(config.INFO, f'{len(notreleased_set)} games not released yet')
 
-  Log(config.INFO, f'Dataset loaded with {len(dataset)} games' if len(dataset) > 0 else 'New dataset created')
+    if len(discarded_set) > 0:
+        Log(config.INFO, f'{len(discarded_set)} apps discarded')
 
-  if len(notreleased) > 0:
-    Log(config.INFO, f'{len(notreleased)} games not released yet')
+    try:
+        if args.update == '':
+            Scraper(dataset, list(notreleased_set), list(discarded_set), args)
+        else:
+            UpdateFromJSON(dataset, list(notreleased_set), list(discarded_set), args)
+    except (KeyboardInterrupt, SystemExit):
+        save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
+        save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
 
-  if len(discarded) > 0:
-    Log(config.INFO, f'{len(discarded)} apps discarded')
-
-  try:
-    if args.update == '':
-      Scraper(dataset, notreleased, discarded, args)
-    else:
-      UpdateFromJSON(dataset, notreleased, discarded, args)
-  except (KeyboardInterrupt, SystemExit):
-    save_to_s3(bucket_name, config.DEFAULT_OUTFILE, dataset)
-    save_to_s3(bucket_name, config.DISCARDED_FILE, discarded)
-    save_to_s3(bucket_name, config.NOTRELEASED_FILE, notreleased)
-
-  Log(config.INFO, 'Done')
+    Log(config.INFO, 'Done')
