@@ -6,7 +6,6 @@ This project aims to create a scalable data pipeline that collects and processes
   <img src="assets/banner.gif" width="80%" />
 </div>
 
-
 ## Overview
 
 The SteamDataPipeline integrates multiple components to scrape, store, and analyze data from the Steam platform. The scraper gathers game information and statistics from Steam's API and SteamSpy, then uploads the data to an S3 bucket. The entire process is automated using AWS services, and future plans include scheduling for regular database updates, modeling the data for easy querying, visualization, and reporting using tools like on AWS Lambda, DBT and Grafana.
