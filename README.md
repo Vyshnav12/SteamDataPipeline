@@ -59,7 +59,7 @@ To get started with SteamDataPipeline, you’ll need to:
 
 1. Clone the repository:
    ``` bash
-        git clone https://github.com/YourUsername/SteamDataPipeline.git
+        git clone https://github.com/Vyshnav12/SteamDataPipeline.git
    ```
 
 2. Install the required dependencies:
@@ -84,7 +84,7 @@ To run the scraper, navigate to the `src` directory and run the following comman
    nohup python3 src/steam_scraper.py > logs/output.log 2>&1 &
    ```
 
-The script will begin scraping data from Steam and SteamSpy, with all logs being stored in `logs/output.log` for review. The data will be uploaded to your specified S3 bucket which can be modified within `steam_scraper.py`.
+The script will begin scraping data from Steam and SteamSpy, with all logs being stored in `logs/output.log` for review. The data will be uploaded to your specified S3 bucket which can be modified within `src/steam_scraper.py`.
 
 ## Future Enhancements
 
