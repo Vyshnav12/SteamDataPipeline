@@ -3,7 +3,7 @@
 This project aims to create a scalable data pipeline that collects and processes data from both Steam and SteamSpy, stores it in AWS S3, and sets up automation for regular updates using AWS Lambda. This pipeline can be used for analyzing trends in the gaming industry, creating visual dashboards, and more.
 
 <div align="center">
-  <img src="assets/banner.gif" width="50%" />
+  <img src="assets/banner.gif" width="80%" />
 </div>
 
 
