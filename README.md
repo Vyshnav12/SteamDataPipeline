@@ -94,7 +94,7 @@ I plan to expand SteamDataPipeline with the following features:
 
 ## Acknowledgment
 
-Special thanks to [Martin Bustos aka FrokonGames](https://github.com/FronkonGames) for providing the foundation that made this project possible.
+Special thanks to [Martin Bustos aka FronkonGames](https://github.com/FronkonGames) for providing the foundation that made this project possible.
 
 ## License
 
