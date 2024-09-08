@@ -1,5 +1,14 @@
 # SteamDataPipeline (WIP)
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Language-Python-blue" alt="Python" />
+  <img src="https://img.shields.io/badge/Steam-API-171A21?logo=steam&logoColor=white" alt="Steam" />
+  <img src="https://img.shields.io/badge/AWS-S3-28a745?logo=amazon-aws&logoColor=white" alt="AWS S3" />
+  <img src="https://img.shields.io/badge/AWS-EC2-ff9900?logo=amazon-aws&logoColor=white" alt="AWS EC2" />
+  <img src="https://img.shields.io/badge/Release-Coming%20Soon-yellow?logo=rocket&logoColor=white" alt="Release" />
+  <img src="https://img.shields.io/github/license/Vyshnav12/dynamic-github-readme-updater" alt="License" />
+</p>
+
 This project aims to create a scalable data pipeline that collects and processes data from both Steam and SteamSpy, stores it in AWS S3, and sets up automation for regular updates using AWS Lambda. This pipeline can be used for analyzing trends in the gaming industry, creating visual dashboards, and more.
 
 ## Overview
