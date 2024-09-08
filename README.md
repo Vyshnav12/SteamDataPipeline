@@ -61,12 +61,12 @@ To get started with SteamDataPipeline, you’ll need to:
 
 1. Clone the repository:
    ``` bash
-        git clone https://github.com/Vyshnav12/SteamDataPipeline.git
+    git clone https://github.com/Vyshnav12/SteamDataPipeline.git
    ```
 
 2. Install the required dependencies:
     ``` bash
-        pip install -r requirements.txt
+    pip install -r requirements.txt
     ```
 
 3. Set up your AWS credentials for S3 access in `~/.aws/credentials` (this project relies on S3 to store the data, no local data storage).
