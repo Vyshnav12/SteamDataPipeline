@@ -195,7 +195,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
 
         # Finalize metadata and chunk merge
         save_metadata_index(bucket_name, metadata)
-        merge_chunks(bucket_name, config.DEFAULT_OUTFILE)
+        merge_chunks(bucket_name, config.UPDATE_OUTFILE)
     else:
         Log(config.ERROR, 'Error requesting list of games')
         sys.exit()

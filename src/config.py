@@ -1,4 +1,5 @@
 # File names and paths
+UPDATE_OUTFILE = 'update.json'
 DEFAULT_OUTFILE = 'games.json'
 APPLIST_FILE = 'applist.json'
 DISCARDED_FILE = 'discarded.json'
