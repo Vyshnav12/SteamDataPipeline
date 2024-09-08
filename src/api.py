@@ -94,8 +94,6 @@ def SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, re
             # Handle SteamSpy rate limiting
             if "Too many connections" in response_text:
                 Log(config.WARNING, f"Rate limit exceeded for appID {appID}. Retrying after a delay.")
-                time.sleep(10) 
-                return SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, retries)
 
             # Check if the response is valid JSON
             if response_text:
