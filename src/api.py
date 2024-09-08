@@ -75,29 +75,46 @@ def SteamRequest(appID, retryTime, successRequestCount, errorRequestCount, retri
 
 def SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, retries):
     '''
-    Request and parse information about a Steam app using SteamSpy.
+    Request and parse information about a Steam app using SteamSpy, handling rate limiting and connection errors.
     '''
     url = f"https://steamspy.com/api.php?request=appdetails&appid={appID}"
     
-    # Define the headers including User-Agent
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
     }
     
     response = DoRequest(url, None, retryTime, successRequestCount, errorRequestCount, retries, headers)
     if response:
         try:
-            data = response.json()
-            if data.get('developer', "") != "":
-                return data
+            response_text = response.text.strip()
+
+            # Log the raw response for debugging
+            Log(config.INFO, f'Response from SteamSpy API for appID {appID}: {response_text[:200]}...')
+
+            # Handle SteamSpy rate limiting
+            if "Too many connections" in response_text:
+                Log(config.WARNING, f"Rate limit exceeded for appID {appID}. Retrying after a delay.")
+                time.sleep(10) 
+                return SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, retries)
+
+            # Check if the response is valid JSON
+            if response_text:
+                data = response.json()  # Try to parse the JSON response
+                if data.get('developer', "") != "":
+                    return data
+                else:
+                    return None
             else:
+                Log(config.WARNING, f"Empty response for appID {appID}")
                 return None
+
         except Exception as ex:
-            Log(config.EXCEPTION, f'An exception of type {ex} occurred. Traceback: {traceback.format_exc()}')
+            Log(config.EXCEPTION, f'An exception of type {ex} occurred while parsing JSON. Traceback: {traceback.format_exc()}')
             return None
     else:
-        Log(config.ERROR, 'Bad response')
+        Log(config.ERROR, 'Bad response from SteamSpy API')
         return None
+
 
 def ParseSteamGame(app):
   '''

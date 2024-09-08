@@ -40,6 +40,7 @@
 # These modifications aim to improve the scraper's efficiency, reliability, and maintainability,
 # particularly when deployed on AWS infrastructure.
 ########################################################################################################################
+
 __author__ = "Martin Bustos, Vyshnav Varma"
 __copyright__ = "Copyright 2022, Martin Bustos; 2024, Vyshnav Varma"
 __license__ = "MIT"
