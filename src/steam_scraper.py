@@ -37,6 +37,9 @@
 # 5. Logging and Error Handling:
 #    - Enhanced logging system for better tracking of scraping progress and error reporting.
 #
+# 6. Removed Deprecated Functions and Parser Arguments:
+#    - Removed UpdateFromJSON and unused parser arguments from the script.
+#
 # These modifications aim to improve the scraper's efficiency, reliability, and maintainability,
 # particularly when deployed on AWS infrastructure.
 ########################################################################################################################
