@@ -25,7 +25,7 @@ The SteamDataPipeline integrates multiple components to scrape, store, and analy
 
 ## Core Functionality
 
-This pipeline is designed to efficiently scrape and process data from Steam and SteamSpy. It's built upon [FronkonGames' Steam Games Scraper](https://github.com/FronkonGames/Steam-Games-Scraper), with significant enhancements for improved performance, scalability, and code readability.
+This pipeline is designed to efficiently scrape and process data from Steam and SteamSpy. It's a heavily modified version of [FronkonGames' Steam Games Scraper](https://github.com/FronkonGames/Steam-Games-Scraper), with significant enhancements for improved performance, scalability, and code readability.
 
 ### Key Features
 
@@ -41,10 +41,11 @@ The project structure has been reorganized into logical components, facilitating
 ## Technologies Used
 - **Python 3.12.5**: The primary language for the scraper.
 - **AWS S3**: To store the scraped data.
-- **EC2**: Used for a one-time process to handle scraping the large Steam dataset. Future updates is planned to be scheduled using either cron jobs or Lambda.
+- **AWS EC2**: Used for running the scraper to handle the large Steam dataset.
+- **AWS Lambda**: Planned for future automated updates.
+- **PostgreSQL**: Planned for data warehousing.
 - **DBT**: Planned for data modeling.
 - **Grafana**: Planned for visualization.
-
 
 ## Project Structure
 ```
@@ -74,7 +75,9 @@ To get started with SteamDataPipeline, you’ll need to:
     pip install -r requirements.txt
     ```
 
-3. Set up your AWS credentials for S3 access in `~/.aws/credentials` (this project relies on S3 to store the data, no local data storage).
+3. Set up your AWS credentials for S3 access. You can do this by either:
+   - Setting environment variables: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+   - Or by configuring the AWS CLI: `aws configure`
 
 ## Running the Scraper
 
@@ -92,6 +95,10 @@ To run the scraper, navigate to the `src` directory and run the following comman
 
 The script will begin scraping data from Steam and SteamSpy, with all logs being stored in `logs/output.log` for review. The data will be uploaded to your specified S3 bucket which can be modified within `src/steam_scraper.py`.
 
+## Data Storage
+
+This project primarily uses AWS S3 for data storage. However, you can modify the `config.py` file to enable local storage if needed.
+
 ## Future Enhancements
 
 I plan to expand SteamDataPipeline with the following features:
@@ -99,6 +106,10 @@ I plan to expand SteamDataPipeline with the following features:
 - **Data modeling**: DBT will be used to model and transform the data stored in S3 for easier analysis.
 - **Data Warehousing**: PostgreSQL will be used for data warehousing.
 - **Data visualization**: Grafana will be connected to the data pipeline to provide real-time insights into the scraped data.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Acknowledgment
 
