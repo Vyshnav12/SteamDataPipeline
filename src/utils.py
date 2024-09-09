@@ -1,6 +1,6 @@
 import json
 import boto3
-from botocore.exceptions import NoCredentialsError
+from botocore.exceptions import ClientError
 import logging
 import re
 import config
@@ -22,8 +22,6 @@ def save_to_s3(bucket_name, key, data):
         with io.BytesIO(json.dumps(data, indent=4).encode('utf-8')) as file_obj:
             s3_client.upload_fileobj(file_obj, bucket_name, key)
         logger.info(f'Successfully saved {key} to S3.')
-    except NoCredentialsError:
-        logger.error('Credentials not available for S3.')
     except Exception as e:
         logger.error(f'Error saving to S3: {e}')
 
@@ -31,11 +29,21 @@ def load_from_s3(bucket_name, key):
     try:
         with io.BytesIO() as file_obj:
             s3_client.download_fileobj(bucket_name, key, file_obj)
-            return json.loads(file_obj.getvalue().decode('utf-8'))
-    except s3_client.exceptions.NoSuchKey:
+            file_obj.seek(0)  # Reset file pointer to the beginning
+            data = file_obj.getvalue().decode('utf-8')
+            return json.loads(data)
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            logger.info(f"No such key: {key}")  # Debug log
+            return None
+        else:
+            logger.error(f'Error loading from S3: {e}')
+            return None
+    except json.JSONDecodeError as e:
+        logger.error(f'Error decoding JSON from S3: {e}')
         return None
     except Exception as e:
-        logger.error(f'Error loading from S3: {e}')
+        logger.error(f'Unexpected error loading from S3: {e}')
         return None
 
 def save_chunk_to_s3(bucket_name, chunk, manifest):
