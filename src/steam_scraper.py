@@ -48,8 +48,6 @@
 #    - Enhanced rate limiting handling in SteamSpyRequest.
 #    - Optimized parameter handling and response processing in API functions.
 #
-# These modifications aim to improve the scraper's efficiency, reliability, and maintainability,
-# particularly when deployed on AWS infrastructure.
 ########################################################################################################################
 
 __author__ = "Martin Bustos, Vyshnav Varma"
