@@ -50,133 +50,139 @@ def SteamRequest(appID, retryTime, successRequestCount, errorRequestCount, retri
   '''
   Request and parse information about a Steam app.
   '''
-  url = "http://store.steampowered.com/api/appdetails/"
-  response = DoRequest(url, {"appids": appID, "cc": currency, "l": language}, retryTime, successRequestCount, errorRequestCount, retries)
-  if response:
-    try:
-      data = response.json()
-      app = data[appID]
-      if app['success'] is False:
-        return None
-      elif app['data']['type'] != 'game':
-        return None
-      elif app['data']['is_free'] is False and 'price_overview' in app['data'] and app['data']['price_overview']['final_formatted'] == '':
-        return None
-      elif 'developers' in app['data'] and len(app['data']['developers']) == 0:
-        return None
-      else:
-        return app['data']
-    except Exception as ex:
-      Log(config.EXCEPTION, f'An exception of type {ex} ocurred. Traceback: {traceback.format_exc()}')
+  url = "https://store.steampowered.com/api/appdetails/"  # Use HTTPS
+  params = {"appids": appID, "cc": currency, "l": language}
+  response = DoRequest(url, params, retryTime, successRequestCount, errorRequestCount, retries)
+  
+  if not response:
+      Log(config.ERROR, 'Bad response')
       return None
-  else:
-    Log(config.ERROR, 'Bad response')
-    return None
+
+  try:
+      data = response.json()
+      app = data.get(str(appID), {})
+      
+      if not app.get('success'):
+          return None
+
+      app_data = app.get('data', {})
+      
+      if (app_data.get('type') != 'game' or
+          (not app_data.get('is_free') and 
+           'price_overview' in app_data and 
+           app_data['price_overview'].get('final_formatted') == '') or
+          not app_data.get('developers')):
+          return None
+
+      return app_data
+  except Exception as ex:
+      Log(config.EXCEPTION, f'An exception occurred: {ex}. Traceback: {traceback.format_exc()}')
+      return None
 
 def SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, retries):
     '''
     Request and parse information about a Steam app using SteamSpy, handling rate limiting and connection errors.
     '''
-    url = f"https://steamspy.com/api.php?request=appdetails&appid={appID}"
+    url = f"https://steamspy.com/api.php"
+    params = {"request": "appdetails", "appid": appID}
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
     }
     
-    response = DoRequest(url, None, retryTime, successRequestCount, errorRequestCount, retries, headers)
-    if response:
-        try:
-            response_text = response.text.strip()
-
-            # Log the raw response for debugging
-            #Log(config.INFO, f'Response from SteamSpy API for appID {appID}: {response_text[:200]}...')
-
-            # Handle SteamSpy rate limiting
-            if "Too many connections" in response_text:
-                Log(config.WARNING, f"Rate limit exceeded for appID {appID}. Retrying after a delay.")
-
-            # Check if the response is valid JSON
-            if response_text:
-                data = response.json()  # Try to parse the JSON response
-                if data.get('developer', "") != "":
-                    return data
-                else:
-                    return None
-            else:
-                Log(config.WARNING, f"Empty response for appID {appID}")
-                return None
-
-        except Exception as ex:
-            Log(config.EXCEPTION, f'An exception of type {ex} occurred while parsing JSON. Traceback: {traceback.format_exc()}')
-            return None
-    else:
+    response = DoRequest(url, params, retryTime, successRequestCount, errorRequestCount, retries, headers)
+    if not response:
         Log(config.ERROR, 'Bad response from SteamSpy API')
         return None
 
+    try:
+        response_text = response.text.strip()
+
+        if "Too many connections" in response_text:
+            Log(config.WARNING, f"Rate limit exceeded for appID {appID}. Retrying after a delay.")
+            return None
+
+        if not response_text:
+            Log(config.WARNING, f"Empty response for appID {appID}")
+            return None
+
+        data = response.json()
+        return data if data.get('developer') else None
+
+    except Exception as ex:
+        Log(config.EXCEPTION, f'An exception occurred while parsing JSON for appID {appID}: {ex}')
+        return None
 
 def ParseSteamGame(app):
   '''
   Parse game info.
   '''
-  game = {}
-  # Basic Info
-  game['name'] = app.get('name', '').strip()
-  game['release_date'] = app.get('release_date', {}).get('date', '') if 'release_date' in app and not app['release_date'].get('coming_soon', False) else ''
-  game['required_age'] = int(str(app.get('required_age', 0)).replace('+', ''))
+  game = {
+      # Basic Info
+      'name': app.get('name', '').strip(),
+      'release_date': app.get('release_date', {}).get('date', '') if not app.get('release_date', {}).get('coming_soon', False) else '',
+      'required_age': int(str(app.get('required_age', 0)).replace('+', '')),
 
-  # Pricing and DLC
-  game['price'] = 0.0 if app.get('is_free') or 'price_overview' not in app else PriceToFloat(app['price_overview'].get('final_formatted', ''))
-  game['dlc_count'] = len(app.get('dlc', []))
+      # Pricing and DLC
+      'price': 0.0 if app.get('is_free') else PriceToFloat(app.get('price_overview', {}).get('final_formatted', '')),
+      'dlc_count': len(app.get('dlc', [])),
 
-  # Descriptions
-  game['detailed_description'] = app.get('detailed_description', '').strip()
-  game['about_the_game'] = app.get('about_the_game', '').strip()
-  game['short_description'] = app.get('short_description', '').strip()
+      # Descriptions
+      'detailed_description': app.get('detailed_description', '').strip(),
+      'about_the_game': app.get('about_the_game', '').strip(),
+      'short_description': app.get('short_description', '').strip(),
 
-  # Technical Details
-  game['windows'] = app.get('platforms', {}).get('windows', False)
-  game['mac'] = app.get('platforms', {}).get('mac', False)
-  game['linux'] = app.get('platforms', {}).get('linux', False)
-  game['metacritic_score'] = int(app.get('metacritic', {}).get('score', 0))
-  game['achievements'] = int(app.get('achievements', {}).get('total', 0))
-  game['recommendations'] = app.get('recommendations', {}).get('total', 0)
-  game['notes'] = app.get('content_descriptors', {}).get('notes', '')
+      # Technical Details
+      'windows': app.get('platforms', {}).get('windows', False),
+      'mac': app.get('platforms', {}).get('mac', False),
+      'linux': app.get('platforms', {}).get('linux', False),
+      'metacritic_score': int(app.get('metacritic', {}).get('score', 0)),
+      'achievements': int(app.get('achievements', {}).get('total', 0)),
+      'recommendations': app.get('recommendations', {}).get('total', 0),
+      'notes': app.get('content_descriptors', {}).get('notes', ''),
+
+      # Languages
+      'supported_languages': [],
+      'full_audio_languages': [],
+
+      # Packages
+      'packages': [],
+
+      # Developers, Publishers, Categories, Genres
+      'developers': [developer.strip() for developer in app.get('developers', [])],
+      'publishers': [publisher.strip() for publisher in app.get('publishers', [])],
+      'categories': [category.get('description', '') for category in app.get('categories', [])],
+      'genres': [genre.get('description', '') for genre in app.get('genres', [])],
+  }
 
   # Languages
-  game['supported_languages'] = []
-  game['full_audio_languages'] = []
   if 'supported_languages' in app:
-    languagesApp = re.sub('<[^<]+?>', '', app['supported_languages'])
-    languagesApp = languagesApp.replace('languages with full audio support', '')
-    languages = languagesApp.split(', ')
-    for lang in languages:
-      if '*' in lang:
-        game['full_audio_languages'].append(lang.replace('*', ''))
-      game['supported_languages'].append(lang.replace('*', ''))
+      languagesApp = re.sub('<[^<]+?>', '', app['supported_languages'])
+      languagesApp = languagesApp.replace('languages with full audio support', '')
+      for lang in languagesApp.split(', '):
+          clean_lang = lang.replace('*', '')
+          game['supported_languages'].append(clean_lang)
+          if '*' in lang:
+              game['full_audio_languages'].append(clean_lang)
 
   # Packages
-  game['packages'] = []
-  if 'package_groups' in app:
-    for package in app['package_groups']:
-      subs = []
-      if 'subs' in package:
-        for sub in package['subs']:
-          subs.append({'text': SanitizeText(sub['option_text']),
-                       'description': sub.get('option_description', ''),
-                       'price': round(float(sub.get('price_in_cents_with_discount', 0)) * 0.01, 2) })
-      game['packages'].append({'title': SanitizeText(package.get('title', '')), 
-                               'description': SanitizeText(package.get('description', '')), 
-                               'subs': subs})
+  for package in app.get('package_groups', []):
+      subs = [
+          {
+              'text': SanitizeText(sub['option_text']),
+              'description': sub.get('option_description', ''),
+              'price': round(float(sub.get('price_in_cents_with_discount', 0)) * 0.01, 2)
+          }
+          for sub in package.get('subs', [])
+      ]
+      game['packages'].append({
+          'title': SanitizeText(package.get('title', '')),
+          'description': SanitizeText(package.get('description', '')),
+          'subs': subs
+      })
 
-  # Developers, Publishers, Categories, Genres
-  game['developers'] = [developer.strip() for developer in app.get('developers', [])]
-  game['publishers'] = [publisher.strip() for publisher in app.get('publishers', [])]
-  game['categories'] = [category.get('description', '') for category in app.get('categories', [])]
-  game['genres'] = [genre.get('description', '') for genre in app.get('genres', [])]
-
-  game['detailed_description'] = SanitizeText(game['detailed_description'])
-  game['about_the_game'] = SanitizeText(game['about_the_game'])
-  game['short_description'] = SanitizeText(game['short_description'])
-  game['notes'] = SanitizeText(game['notes'])
+  # Sanitize descriptions
+  for key in ['detailed_description', 'about_the_game', 'short_description', 'notes']:
+      game[key] = SanitizeText(game[key])
 
   return game
