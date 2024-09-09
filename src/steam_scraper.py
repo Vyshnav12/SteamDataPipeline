@@ -56,7 +56,7 @@ import datetime as dt
 import config
 
 from api import SteamRequest, SteamSpyRequest, DoRequest, ParseSteamGame
-from utils import load_from_s3, save_to_s3, ProgressLog, Log, save_chunk_to_s3, merge_chunks, load_metadata_index, save_metadata_index, is_appID_present, update_metadata_index, list_chunk_filenames
+from utils import load_from_s3, save_to_s3, ProgressLog, Log, save_chunk_to_s3, merge_chunks, load_metadata_index, save_metadata_index, update_metadata_index, list_chunk_filenames
 
 def Scraper(dataset, notreleased, discarded, args, appIDs=None):
     '''
@@ -70,7 +70,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         appIDs (list, optional): A list of appIDs to scrape. Defaults to None.
     '''
     
-    bucket_name = 'steamscraperbucket'
+    bucket_name = 'testbucketx11'
     metadata = load_metadata_index(bucket_name)  # Load existing metadata index as a set
 
     apps = []
@@ -104,7 +104,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         errorRequestCount = 0
 
         random.shuffle(apps)
-        total = len(apps) - len(discarded_set) - len(notreleased_set)
+        total = len(apps) - len(discarded_set) - len(notreleased_set) - len(metadata)
         count = 0
 
         start_time = dt.datetime.now()
@@ -200,7 +200,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         Log(config.ERROR, 'Error requesting list of games')
         sys.exit()
 
-
+'''
 def UpdateFromJSON(dataset, notreleased, discarded, args):
 
     """
@@ -214,7 +214,7 @@ def UpdateFromJSON(dataset, notreleased, discarded, args):
     Returns:
         None
     """
-    bucket_name = 'steamscraperbucket'
+    bucket_name = 'testbucketx11'
     applist_key = config.APPLIST_FILE
 
     try:
@@ -241,22 +241,17 @@ def UpdateFromJSON(dataset, notreleased, discarded, args):
             Log(config.WARNING, f'No new appIDs to update from {applist_key}')
     except Exception as e:
         Log(config.ERROR, f'Error loading or processing file from S3: {str(e)}')
-
+'''
 
 if __name__ == "__main__":
     Log(config.INFO, f'Steam Games Scraper {__version__} by {__author__}')
   
     parser = argparse.ArgumentParser(description='Steam games scraper.')
-    parser.add_argument('-i', '--infile',   type=str,   default=config.DEFAULT_OUTFILE,  help='Input file name')
-    parser.add_argument('-o', '--outfile',  type=str,   default=config.DEFAULT_OUTFILE,  help='Output file name')
     parser.add_argument('-s', '--sleep',    type=float, default=config.DEFAULT_SLEEP,    help='Waiting time between requests')
     parser.add_argument('-r', '--retries',  type=int,   default=config.DEFAULT_RETRIES,  help='Number of retries (0 to always retry)')
     parser.add_argument('-a', '--autosave', type=int,   default=config.DEFAULT_AUTOSAVE, help='Record the data every number of new entries (0 to deactivate)')
     parser.add_argument('-d', '--released', type=bool,  default=True,             help='If it is on the list of not yet released, no information is requested')
-    parser.add_argument('-c', '--currency', type=str,   default=config.DEFAULT_CURRENCY, help='Currency code')
-    parser.add_argument('-l', '--language', type=str,   default=config.DEFAULT_LANGUAGE, help='Language code')
     parser.add_argument('-p', '--steamspy', type=bool,  default=True,             help='Add SteamSpy info')
-    parser.add_argument('-u', '--update',   type=str,   default='',               help='Update using APPIDs from a JSON file')
     args = parser.parse_args()
     random.seed(time.time())
 
@@ -264,7 +259,7 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit()
     
-    bucket_name = 'steamscraperbucket'
+    bucket_name = 'testbucketx11'
 
     # Load metadata index and chunked data
     metadata = load_metadata_index(bucket_name)
@@ -290,10 +285,7 @@ if __name__ == "__main__":
         Log(config.INFO, f'{len(discarded_set)} apps discarded')
 
     try:
-        if args.update == '':
-            Scraper(dataset, list(notreleased_set), list(discarded_set), args)
-        else:
-            UpdateFromJSON(dataset, list(notreleased_set), list(discarded_set), args)
+        Scraper(dataset, list(notreleased_set), list(discarded_set), args)
     except (KeyboardInterrupt, SystemExit):
         save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
         save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))

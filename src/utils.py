@@ -155,7 +155,7 @@ def load_metadata_index(bucket_name):
     :return: The set of appIDs in the metadata index, or an empty set if the index is not present.
     '''
     try:
-        metadata = load_from_s3(bucket_name, 'metadata_index.json')
+        metadata = load_from_s3(bucket_name, config.METADATA_FILE)
         return set(metadata) if metadata else set()
     except Exception as e:
         logger.error(f'Error loading metadata index: {e}')
@@ -169,7 +169,7 @@ def save_metadata_index(bucket_name, metadata):
     :param metadata: The metadata index to save, as a set of appIDs.
     '''
     try:
-        save_to_s3(bucket_name, 'metadata_index.json', list(metadata))
+        save_to_s3(bucket_name, config.METADATA_FILE, list(metadata))
     except Exception as e:
         logger.error(f'Error saving metadata index: {e}')
 
@@ -184,15 +184,15 @@ def update_metadata_index(metadata, chunk):
     metadata.update(chunk.keys())
     return metadata
 
-def is_appID_present(metadata, appID):
-    '''
-    Checks if the given appID is present in the metadata index.
+# def is_appID_present(metadata, appID):
+#     '''
+#     Checks if the given appID is present in the metadata index.
 
-    :param metadata: The metadata index to check, as a set of appIDs.
-    :param appID: The appID to check for.
-    :return: True if the appID is present, False otherwise.
-    '''
-    return appID in metadata
+#     :param metadata: The metadata index to check, as a set of appIDs.
+#     :param appID: The appID to check for.
+#     :return: True if the appID is present, False otherwise.
+#     '''
+#     return appID in metadata
 
 def list_chunk_filenames(bucket_name, prefix='chunks/'):
     '''

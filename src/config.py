@@ -4,6 +4,7 @@ DEFAULT_OUTFILE = 'games.json'
 APPLIST_FILE = 'applist.json'
 DISCARDED_FILE = 'discarded.json'
 NOTRELEASED_FILE = 'notreleased.json'
+METADATA_FILE = 'metadata_index.json'
 
 # Default settings
 DEFAULT_SLEEP = 1.5
