@@ -203,49 +203,6 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         Log(config.ERROR, 'Error requesting list of games')
         sys.exit()
 
-'''
-def UpdateFromJSON(dataset, notreleased, discarded, args):
-
-    """
-    Update the metadata index from a JSON file.
-    Args:
-        dataset (str): The name of the dataset to update.
-        notreleased (set): A set of appIDs that are not released.
-        discarded (set): A set of appIDs that are discarded.
-        args (argparse.Namespace): The command line arguments.
-
-    Returns:
-        None
-    """
-    bucket_name = 'testbucketx11'
-    applist_key = config.APPLIST_FILE
-
-    try:
-        Log(config.INFO, f"Loading '{applist_key}' from S3")
-        data = load_from_s3(bucket_name, applist_key)
-        appIDs = [str(app["appid"]) for app in data["applist"]["apps"]]
-        
-        Log(config.INFO, f"Loaded {len(appIDs)} appIDs from '{applist_key}'")
-
-        # Load metadata index
-        metadata = load_metadata_index(bucket_name)
-
-        # Convert notreleased and discarded to sets for faster lookups
-        notreleased_set = set(notreleased)
-        discarded_set = set(discarded)
-
-        # Filter out appIDs already present in metadata, discarded, or notreleased
-        appIDs_to_update = [appID for appID in appIDs if not is_appID_present(metadata, appID) and appID not in discarded_set and appID not in notreleased_set]
-
-        if len(appIDs_to_update) > 0:
-            Log(config.INFO, f"New {len(appIDs_to_update)} appIDs to update")
-            Scraper(dataset, list(notreleased_set), list(discarded_set), args, appIDs_to_update)
-        else:
-            Log(config.WARNING, f'No new appIDs to update from {applist_key}')
-    except Exception as e:
-        Log(config.ERROR, f'Error loading or processing file from S3: {str(e)}')
-'''
-
 if __name__ == "__main__":
     Log(config.INFO, f'Steam Games Scraper {__version__} by {__author__}')
   

@@ -184,16 +184,6 @@ def update_metadata_index(metadata, chunk):
     metadata.update(chunk.keys())
     return metadata
 
-# def is_appID_present(metadata, appID):
-#     '''
-#     Checks if the given appID is present in the metadata index.
-
-#     :param metadata: The metadata index to check, as a set of appIDs.
-#     :param appID: The appID to check for.
-#     :return: True if the appID is present, False otherwise.
-#     '''
-#     return appID in metadata
-
 def list_chunk_filenames(bucket_name, prefix='chunks/'):
     '''
     List all chunk filenames in the specified S3 bucket and prefix.
