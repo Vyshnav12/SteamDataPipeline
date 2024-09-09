@@ -70,6 +70,10 @@ from api import SteamRequest, SteamSpyRequest, DoRequest, ParseSteamGame
 from utils import load_from_s3, save_to_s3, ProgressLog, Log, save_chunk_to_s3, merge_chunks, load_metadata_index, save_metadata_index, update_metadata_index
 
 def get_app_list(bucket_name, args):
+    """
+    Loads the list of games from S3 or downloads it from Steam if missing.
+    """
+    
     try:
         apps = load_from_s3(bucket_name, config.APPLIST_FILE)
         if apps is None:
@@ -87,6 +91,20 @@ def get_app_list(bucket_name, args):
     return apps
 
 def process_game(appID, args, notreleased_set, discarded_set, successRequestCount, errorRequestCount):
+    """
+    Process a single Steam game.
+
+    Args:
+        appID (int): Steam AppID of the game to process.
+        args (argparse.Namespace): Command line arguments.
+        notreleased_set (set): Set of AppIDs of games that haven't been released yet.
+        discarded_set (set): Set of AppIDs of games that belong to the catergory (DLC, Bundle, etc).
+        successRequestCount (int): Number of successful requests made.
+        errorRequestCount (int): Number of requests that resulted in an error.
+
+    Returns:
+        tuple: A tuple containing the processed game data, or None if the game was discarded, and a string indicating the status of the game ('added' or 'not_released').
+    """
     app = SteamRequest(appID, min(4, args.sleep), successRequestCount, errorRequestCount, args.retries)
     if not app:
         return None, 'discarded'
@@ -122,6 +140,24 @@ def process_game(appID, args, notreleased_set, discarded_set, successRequestCoun
     return game, 'added'
 
 def save_progress(bucket_name, args, notreleased_set, discarded_set, gamesNotReleased, gamesdiscarded):
+    """Save the current progress of the scraper to S3. This function is
+    idempotent, so it can be called multiple times without worrying about
+    overwriting previous data.
+
+    The function takes in the following parameters:
+
+    - `bucket_name`: The name of the S3 bucket to save the data to.
+    - `args`: The argparse.Namespace object containing the command line
+      arguments.
+    - `notreleased_set`: A set of AppIDs that have not been released yet.
+    - `discarded_set`: A set of AppIDs that are not games.
+    - `gamesNotReleased`: The number of games that have not been released yet.
+    - `gamesdiscarded`: The number of games that have been discarded.
+
+    If `args.autosave` is greater than 0, then the function will save the data
+    to S3 if either `gamesNotReleased` or `gamesdiscarded` is a multiple of
+    `args.autosave`.
+    """
     if args.autosave > 0:
         if gamesNotReleased % args.autosave == 0:
             save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
@@ -129,6 +165,43 @@ def save_progress(bucket_name, args, notreleased_set, discarded_set, gamesNotRel
             save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
 
 def Scraper(dataset, notreleased, discarded, args, appIDs=None):
+    """
+    The main Steam scraper function.
+
+    The function takes in the following parameters:
+
+    - `dataset`: The path to the dataset file to be used for scraping.
+    - `notreleased`: A list of AppIDs that have not been released yet.
+    - `discarded`: A list of AppIDs that are not games.
+    - `args`: The argparse.Namespace object containing the command line
+      arguments.
+    - `appIDs`: An optional list of AppIDs to scrape. If not provided, the
+      function will retrieve the list of AppIDs from the dataset file.
+
+    The function will scrape the Steam API for the given AppIDs, and save the
+    results to S3. If the autosave option is enabled, the function will save
+    the data to S3 at regular intervals.
+
+    The function will also save the progress of the scraper to S3, including
+    the current set of AppIDs that have not been released yet, and the set of
+    AppIDs that are not games.
+
+    Finally, the function will merge the chunks saved to S3 into a single file
+    when the scrape is complete.
+
+    :param dataset: The path to the dataset file to be used for scraping.
+    :type dataset: str
+    :param notreleased: A list of AppIDs that have not been released yet.
+    :type notreleased: list
+    :param discarded: A list of AppIDs that are not games.
+    :type discarded: list
+    :param args: The argparse.Namespace object containing the command line
+        arguments.
+    :type args: argparse.Namespace
+    :param appIDs: An optional list of AppIDs to scrape. If not provided, the
+        function will retrieve the list of AppIDs from the dataset file.
+    :type appIDs: list, optional
+    """
     bucket_name = 'testbucketx11'
     metadata = load_metadata_index(bucket_name)
     apps = appIDs or get_app_list(bucket_name, args)
