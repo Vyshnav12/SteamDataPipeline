@@ -66,7 +66,7 @@ SteamDataPipeline/
 
 ## Installation
 
-To get started with SteamDataPipeline, you’ll need to:
+To get started with SteamDataPipeline, you'll need to:
 
 1. Clone the repository:
    ``` bash
@@ -89,17 +89,7 @@ Execute the scraper using:
 ```bash
 python src/steam_scraper.py [arguments]
 ```
-
-### Arguments
-
-| Argument | Description | Default |
-|----------|-------------|---------|
-| `-s`, `--sleep` | Wait time between requests | `config.DEFAULT_SLEEP` |
-| `-r`, `--retries` | Number of retries (0 for infinite) | `config.DEFAULT_RETRIES` |
-| `-a`, `--autosave` | Save interval (0 to disable) | `config.DEFAULT_AUTOSAVE` |
-| `-d`, `--released` | Skip unreleased games if True | `True` |
-| `-p`, `--steamspy` | Include SteamSpy info | `True` |
-| `-b`, `--bucket` | S3 bucket name | `'testbucketx11'` |
+Use the argument `-h` to see all the arguments and their descriptions.
 
 ### Example
 
@@ -116,6 +106,26 @@ nohup python3 src/steam_scraper.py > logs/output.log 2>&1 &
 ```
 
 Note: Default values are defined in `config.py`.
+
+## Testing
+
+This project uses Python's built-in `unittest` framework for testing. The tests are located in the `tests/` directory.
+
+### Running Tests
+
+To run all tests, use the following command from the project root directory:
+
+```bash
+python -m unittest discover tests
+```
+
+To run a specific test file, use:
+
+```bash
+python -m unittest tests/test_utils.py
+```
+
+Replace `test_utils.py` with the name of the test file you want to run.
 
 ## Data Storage
 
