@@ -21,24 +21,32 @@
 #    - Implemented chunk-based JSON handling to mitigate memory issues on EC2 instances.
 #    - Introduced set-based lookups for AppIDs, improving lookup performance.
 #    - Optimized the `Scraper` function for better performance and error handling.
+#    - Improved efficiency in API request functions (SteamRequest and SteamSpyRequest).
 #
 # 2. Data Management:
 #    - Added metadata index functions to reduce redundant API calls by caching processed AppIDs.
 #    - Implemented manifest tracking to manage chunk file data before combination.
-#    - Modified `ParseSteamGame` function to safely handle missing fields and exclude certain fields from processing.
+#    - Modified `ParseSteamGame` function for safer handling of missing fields and improved structure.
 #
 # 3. AWS Integration:
 #    - Replaced saveJSON/loadJSON with functions to interact directly with Amazon S3.
 #
 # 4. Code Structure and Organization:
-#    - Improved overall code readability.
-#    - Split functions into separate files and reorganized imports for better maintainability.
+#    - Improved overall code readability and maintainability.
+#    - Split functions into separate files and reorganized imports.
+#    - Restructured `ParseSteamGame` for clarity and efficiency.
 #
 # 5. Logging and Error Handling:
 #    - Enhanced logging system for better tracking of scraping progress and error reporting.
+#    - Improved error handling in API request functions.
 #
-# 6. Removed Deprecated Functions and Parser Arguments:
-#    - Removed UpdateFromJSON and unused parser arguments from the script.
+# 6. Security and Best Practices:
+#    - Updated to use HTTPS for API requests where applicable.
+#    - Removed deprecated functions and unused parser arguments.
+#
+# 7. API Interaction Improvements:
+#    - Enhanced rate limiting handling in SteamSpyRequest.
+#    - Optimized parameter handling and response processing in API functions.
 #
 # These modifications aim to improve the scraper's efficiency, reliability, and maintainability,
 # particularly when deployed on AWS infrastructure.
