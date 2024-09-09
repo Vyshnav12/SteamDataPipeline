@@ -89,7 +89,7 @@ def SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, re
             response_text = response.text.strip()
 
             # Log the raw response for debugging
-            Log(config.INFO, f'Response from SteamSpy API for appID {appID}: {response_text[:200]}...')
+            #Log(config.INFO, f'Response from SteamSpy API for appID {appID}: {response_text[:200]}...')
 
             # Handle SteamSpy rate limiting
             if "Too many connections" in response_text:

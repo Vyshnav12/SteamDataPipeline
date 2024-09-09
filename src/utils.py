@@ -81,16 +81,20 @@ def merge_chunks(bucket_name, output_file):
     :param output_file: The key under which to save the merged data.
     '''
     manifest = load_from_s3(bucket_name, 'manifest.json')
-    if manifest:
+    if manifest and manifest['chunks']:
         all_data = {}
         for chunk_key in manifest['chunks']:
             chunk_data = load_from_s3(bucket_name, chunk_key)
             if chunk_data:
                 all_data.update(chunk_data)
-        save_to_s3(bucket_name, output_file, all_data)
-        logger.info(f'Merged all chunks into {output_file}.')
+        
+        if all_data:  # Only save if there's data to save
+            save_to_s3(bucket_name, output_file, all_data)
+            logger.info(f'Merged {len(manifest["chunks"])} chunk(s) into {output_file}.')
+        else:
+            logger.warning('No data found in chunks. No merged file created.')
     else:
-        logger.error('Manifest file is missing or invalid.')
+        logger.warning('No chunks found in manifest. No merged file created.')
 
 def SanitizeText(text):
     '''
@@ -184,22 +188,22 @@ def update_metadata_index(metadata, chunk):
     metadata.update(chunk.keys())
     return metadata
 
-def list_chunk_filenames(bucket_name, prefix='chunks/'):
-    '''
-    List all chunk filenames in the specified S3 bucket and prefix.
+# def list_chunk_filenames(bucket_name, prefix='chunks/'):
+#     '''
+#     List all chunk filenames in the specified S3 bucket and prefix.
     
-    :param bucket_name: The name of the S3 bucket.
-    :param prefix: The prefix used for chunk filenames (e.g., 'chunks/').
-    :return: List of chunk filenames.
-    '''
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-        if 'Contents' in response:
-            chunk_files = [obj['Key'] for obj in response['Contents']]
-            return chunk_files
-        else:
-            return []
-    except Exception as e:
-        Log(config.ERROR, f'Error listing chunk files from S3: {str(e)}')
-        return []
+#     :param bucket_name: The name of the S3 bucket.
+#     :param prefix: The prefix used for chunk filenames (e.g., 'chunks/').
+#     :return: List of chunk filenames.
+#     '''
+#     s3_client = boto3.client('s3')
+#     try:
+#         response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+#         if 'Contents' in response:
+#             chunk_files = [obj['Key'] for obj in response['Contents']]
+#             return chunk_files
+#         else:
+#             return []
+#     except Exception as e:
+#         Log(config.ERROR, f'Error listing chunk files from S3: {str(e)}')
+#         return []
