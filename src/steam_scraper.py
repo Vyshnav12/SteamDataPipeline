@@ -202,7 +202,6 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         function will retrieve the list of AppIDs from the dataset file.
     :type appIDs: list, optional
     """
-    bucket_name = 'testbucketx11'
     metadata = load_metadata_index(bucket_name)
     apps = appIDs or get_app_list(bucket_name, args)
     
@@ -282,6 +281,7 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--autosave', type=int,   default=config.DEFAULT_AUTOSAVE, help='Record the data every number of new entries (0 to deactivate)')
     parser.add_argument('-d', '--released', type=bool,  default=True,             help='If it is on the list of not yet released, no information is requested')
     parser.add_argument('-p', '--steamspy', type=bool,  default=True,             help='Add SteamSpy info')
+    parser.add_argument('-b', '--bucket',   type=str,   default='testbucketx11',  help='S3 bucket name')
     args = parser.parse_args()
     random.seed(time.time())
 
@@ -289,7 +289,7 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit()
     
-    bucket_name = 'testbucketx11'
+    bucket_name = args.bucket
 
     # Load metadata index and sets
     metadata = load_metadata_index(bucket_name)

@@ -5,34 +5,22 @@ import logging
 import re
 import config
 import datetime as dt
+import io
 
 # Initialize logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
 logging.basicConfig(
-    level=logging.INFO,  # Adjust to the desired level
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+logger = logging.getLogger(__name__)
 
 # AWS S3 client
 s3_client = boto3.client('s3')
 
 def save_to_s3(bucket_name, key, data):
-    '''
-    Save data to S3 bucket under the given key.
-
-    :param bucket_name: The name of the S3 bucket.
-    :param key: The key under which to save the data.
-    :param data: The data to save.
-    '''
-
     try:
-        s3_client.put_object(Bucket=bucket_name, Key=key, Body=json.dumps(data, indent=4))
+        with io.BytesIO(json.dumps(data, indent=4).encode('utf-8')) as file_obj:
+            s3_client.upload_fileobj(file_obj, bucket_name, key)
         logger.info(f'Successfully saved {key} to S3.')
     except NoCredentialsError:
         logger.error('Credentials not available for S3.')
@@ -40,17 +28,10 @@ def save_to_s3(bucket_name, key, data):
         logger.error(f'Error saving to S3: {e}')
 
 def load_from_s3(bucket_name, key):
-    '''
-    Load data from S3 bucket under the given key.
-
-    :param bucket_name: The name of the S3 bucket.
-    :param key: The key under which to load the data.
-    :return: The loaded data, or None if the key is not present.
-    '''
     try:
-        response = s3_client.get_object(Bucket=bucket_name, Key=key)
-        data = response['Body'].read().decode('utf-8')
-        return json.loads(data)
+        with io.BytesIO() as file_obj:
+            s3_client.download_fileobj(bucket_name, key, file_obj)
+            return json.loads(file_obj.getvalue().decode('utf-8'))
     except s3_client.exceptions.NoSuchKey:
         return None
     except Exception as e:
@@ -109,33 +90,15 @@ def SanitizeText(text):
     return text
 
 def Log(level, message):
-    '''
-    Format and log a message.
-    
-    :param level: Log level (INFO, WARNING, ERROR, EXCEPTION).
-    :param message: The message to log.
-    '''
     log_levels = {config.INFO: logging.INFO, config.WARNING: logging.WARNING, config.ERROR: logging.ERROR, config.EXCEPTION: logging.ERROR}
-    logger = logging.getLogger()
-
-    log_level = log_levels.get(level, logging.INFO)
-    logger.log(log_level, f"{config.LOG_ICON[level]} {message}")
+    logger.log(log_levels.get(level, logging.INFO), f"{config.LOG_ICON[level]} {message}")
 
 def ProgressLog(title, count, total, start_time):
-    '''
-    Logs progress information.
-    
-    :param title: Title to display.
-    :param count: Current count.
-    :param total: Total count.
-    :param start_time: Start time for the progress log.
-    '''
     elapsed_time = dt.datetime.now() - start_time
-    elapsed_str = str(elapsed_time).split('.')[0]  # Exclude milliseconds for simplicity
+    elapsed_str = str(elapsed_time).split('.')[0]
     percents = round(100.0 * count / float(total), 2)
     
-    Log(config.INFO, f"{title} - {percents}% completed ({count}/{total}) - Elapsed time: {elapsed_str}")
-
+    Log(config.INFO, f"{title} - {percents:.2f}% completed ({count}/{total}) - Elapsed time: {elapsed_str}")
 
 def PriceToFloat(price_str):
     '''
@@ -187,23 +150,3 @@ def update_metadata_index(metadata, chunk):
     '''
     metadata.update(chunk.keys())
     return metadata
-
-# def list_chunk_filenames(bucket_name, prefix='chunks/'):
-#     '''
-#     List all chunk filenames in the specified S3 bucket and prefix.
-    
-#     :param bucket_name: The name of the S3 bucket.
-#     :param prefix: The prefix used for chunk filenames (e.g., 'chunks/').
-#     :return: List of chunk filenames.
-#     '''
-#     s3_client = boto3.client('s3')
-#     try:
-#         response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-#         if 'Contents' in response:
-#             chunk_files = [obj['Key'] for obj in response['Contents']]
-#             return chunk_files
-#         else:
-#             return []
-#     except Exception as e:
-#         Log(config.ERROR, f'Error listing chunk files from S3: {str(e)}')
-#         return []

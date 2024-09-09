@@ -81,23 +81,42 @@ To get started with SteamDataPipeline, you’ll need to:
 
 ## Running the Scraper
 
-To run the scraper, navigate to the `src` directory and run the following command:
+Execute the scraper using:
 
-- **Locally**: 
-    ```bash
-    cd src && python steam_scraper.py
-    ```
+```bash
+python src/steam_scraper.py [arguments]
+```
 
-- **On EC2 with Background Execution**:
-    ```bash
-   nohup python3 src/steam_scraper.py > logs/output.log 2>&1 &
-   ```
+### Arguments
 
-The script will begin scraping data from Steam and SteamSpy, with all logs being stored in `logs/output.log` for review. The data will be uploaded to your specified S3 bucket which can be modified within `src/steam_scraper.py`.
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `-s`, `--sleep` | Wait time between requests | `config.DEFAULT_SLEEP` |
+| `-r`, `--retries` | Number of retries (0 for infinite) | `config.DEFAULT_RETRIES` |
+| `-a`, `--autosave` | Save interval (0 to disable) | `config.DEFAULT_AUTOSAVE` |
+| `-d`, `--released` | Skip unreleased games if True | `True` |
+| `-p`, `--steamspy` | Include SteamSpy info | `True` |
+| `-b`, `--bucket` | S3 bucket name | `'testbucketx11'` |
+
+### Example
+
+```bash
+python src/steam_scraper.py --sleep 2 --retries 5 --autosave 100 --bucket my-steam-data-bucket
+```
+
+This sets a 2-second delay, 5 retries, saves every 100 entries, and uses the 'my-steam-data-bucket' S3 bucket.
+
+### EC2 Background Execution
+
+```bash
+nohup python3 src/steam_scraper.py > logs/output.log 2>&1 &
+```
+
+Note: Default values are defined in `config.py`.
 
 ## Data Storage
 
-This project primarily uses AWS S3 for data storage. However, you can modify the `config.py` file to enable local storage if needed.
+This project primarily relies on AWS S3 for data storage. However, you can modify the `utils.py` file to enable local storage if needed.
 
 ## Future Enhancements
 
