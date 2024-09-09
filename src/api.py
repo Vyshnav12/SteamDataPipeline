@@ -83,7 +83,7 @@ def SteamSpyRequest(appID, retryTime, successRequestCount, errorRequestCount, re
     '''
     Request and parse information about a Steam app using SteamSpy, handling rate limiting and connection errors.
     '''
-    url = f"https://steamspy.com/api.php"
+    url = "https://steamspy.com/api.php"
     params = {"request": "appdetails", "appid": appID}
     
     headers = {
