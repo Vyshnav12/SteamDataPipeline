@@ -58,6 +58,7 @@ SteamDataPipeline/
 ├── tests/                       # Unit tests
 │   ├── test_scraper.py          # Tests for scraper
 │   └── test_utils.py            # Tests for utility functions
+│   └── test_api.py              # Tests for API functions
 ├── logs/                        # Log files
 ├── data/                        # Scraping output files (WIP - currently being populated)
 ├── README.md                    # Project documentation
