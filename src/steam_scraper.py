@@ -234,6 +234,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
                         manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
                         metadata = update_metadata_index(metadata, chunk)
                         Log(config.INFO, f'Updated metadata index with chunk. Current metadata size: {len(metadata)}')
+                        save_progress(bucket_name, args, notreleased_set, discarded_set, gamesNotReleased, gamesdiscarded)
                         chunk.clear()
                 elif status == 'not_released':
                     if appID not in notreleased_set:
@@ -245,7 +246,6 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
                     gamesdiscarded += 1
                     total -= 1
 
-                save_progress(bucket_name, args, notreleased_set, discarded_set, gamesNotReleased, gamesdiscarded)
                 time.sleep(args.sleep if random.random() > 0.1 else args.sleep * 2.0)
 
     except (KeyboardInterrupt, SystemExit, Exception) as e:
