@@ -209,7 +209,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
 
     random.shuffle(apps)
     total = len(apps) - len(discarded_set) - len(notreleased_set) - len(metadata)
-    count, chunk_size = 0, 10000
+    count, chunk_size = 0, 2000
     chunk, manifest = {}, load_from_s3(bucket_name, 'manifest.json') or {'chunks': []}
     start_time = dt.datetime.now()
 
@@ -239,15 +239,17 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
                     if appID not in notreleased_set:
                         notreleased_set.add(appID)
                         gamesNotReleased += 1
+                        total -= 1
                 elif status == 'discarded':
                     discarded_set.add(appID)
                     gamesdiscarded += 1
+                    total -= 1
 
                 save_progress(bucket_name, args, notreleased_set, discarded_set, gamesNotReleased, gamesdiscarded)
                 time.sleep(args.sleep if random.random() > 0.1 else args.sleep * 2.0)
 
-    except (KeyboardInterrupt, SystemExit):
-        Log(config.INFO, 'Scraping interrupted. Saving current progress...')
+    except (KeyboardInterrupt, SystemExit, Exception) as e:
+        Log(config.INFO, f'Scraping interrupted or error occurred: {str(e)}. Saving current progress...')
         if chunk:  # Save the incomplete chunk
             manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
             metadata = update_metadata_index(metadata, chunk)
@@ -255,7 +257,10 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
         save_metadata_index(bucket_name, metadata)
         save_to_s3(bucket_name, 'manifest.json', manifest)
-        raise
+        if isinstance(e, (KeyboardInterrupt, SystemExit)):
+            raise
+        else:
+            Log(config.ERROR, f"An error occurred: {str(e)}")
 
     # Save remaining data and finalize
     if chunk:

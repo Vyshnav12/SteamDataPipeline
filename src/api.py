@@ -121,7 +121,7 @@ def ParseSteamGame(app):
       # Basic Info
       'name': app.get('name', '').strip(),
       'release_date': app.get('release_date', {}).get('date', '') if not app.get('release_date', {}).get('coming_soon', False) else '',
-      'required_age': int(str(app.get('required_age', 0)).replace('+', '')),
+      'required_age': safe_int(app.get('required_age', 0)),
 
       # Pricing and DLC
       'price': 0.0 if app.get('is_free') else PriceToFloat(app.get('price_overview', {}).get('final_formatted', '')),
@@ -186,3 +186,9 @@ def ParseSteamGame(app):
       game[key] = SanitizeText(game[key])
 
   return game
+
+def safe_int(value, default=0):
+    try:
+        return int(str(value).replace('+', ''))
+    except ValueError:
+        return default
