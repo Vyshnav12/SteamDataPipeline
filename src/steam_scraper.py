@@ -137,31 +137,6 @@ def process_game(appID, args, notreleased_set, discarded_set, successRequestCoun
 
     return game, 'added'
 
-def save_progress(bucket_name, args, notreleased_set, discarded_set, gamesNotReleased, gamesdiscarded):
-    """Save the current progress of the scraper to S3. This function is
-    idempotent, so it can be called multiple times without worrying about
-    overwriting previous data.
-
-    The function takes in the following parameters:
-
-    - `bucket_name`: The name of the S3 bucket to save the data to.
-    - `args`: The argparse.Namespace object containing the command line
-      arguments.
-    - `notreleased_set`: A set of AppIDs that have not been released yet.
-    - `discarded_set`: A set of AppIDs that are not games.
-    - `gamesNotReleased`: The number of games that have not been released yet.
-    - `gamesdiscarded`: The number of games that have been discarded.
-
-    If `args.autosave` is greater than 0, then the function will save the data
-    to S3 if either `gamesNotReleased` or `gamesdiscarded` is a multiple of
-    `args.autosave`.
-    """
-    if args.autosave > 0:
-        if gamesNotReleased % args.autosave == 0:
-            save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
-        if gamesdiscarded % args.autosave == 0:
-            save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
-
 def Scraper(dataset, notreleased, discarded, args, appIDs=None):
     """
     The main Steam scraper function.
@@ -186,19 +161,6 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
 
     Finally, the function will merge the chunks saved to S3 into a single file
     when the scrape is complete.
-
-    :param dataset: The path to the dataset file to be used for scraping.
-    :type dataset: str
-    :param notreleased: A list of AppIDs that have not been released yet.
-    :type notreleased: list
-    :param discarded: A list of AppIDs that are not games.
-    :type discarded: list
-    :param args: The argparse.Namespace object containing the command line
-        arguments.
-    :type args: argparse.Namespace
-    :param appIDs: An optional list of AppIDs to scrape. If not provided, the
-        function will retrieve the list of AppIDs from the dataset file.
-    :type appIDs: list, optional
     """
     metadata = load_metadata_index(bucket_name)
     apps = appIDs or get_app_list(bucket_name, args)
@@ -232,9 +194,10 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
 
                     if len(chunk) >= chunk_size:
                         manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
-                        metadata = update_metadata_index(metadata, chunk)
-                        Log(config.INFO, f'Updated metadata index with chunk. Current metadata size: {len(metadata)}')
-                        save_progress(bucket_name, args, notreleased_set, discarded_set, gamesNotReleased, gamesdiscarded)
+                        metadata = update_metadata_index(metadata, set(chunk.keys()))
+                        Log(config.INFO, f'Updated metadata index with chunk AppIDs. Current metadata size: {len(metadata)}')
+                        save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
+                        save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
                         chunk.clear()
                 elif status == 'not_released':
                     if appID not in notreleased_set:
@@ -252,7 +215,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
         Log(config.INFO, f'Scraping interrupted or error occurred: {str(e)}. Saving current progress...')
         if chunk:  # Save the incomplete chunk
             manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
-            metadata = update_metadata_index(metadata, chunk)
+            metadata = update_metadata_index(metadata, set(chunk.keys()))
         save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
         save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
         save_metadata_index(bucket_name, metadata)
@@ -265,7 +228,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
     # Save remaining data and finalize
     if chunk:
         manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
-        metadata = update_metadata_index(metadata, chunk)
+        metadata = update_metadata_index(metadata, set(chunk.keys()))
 
     ProgressLog('Scraping', total, total, start_time)
     print('\r')
@@ -281,7 +244,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Steam games scraper.')
     parser.add_argument('-s', '--sleep',    type=float, default=config.DEFAULT_SLEEP,    help='Waiting time between requests')
     parser.add_argument('-r', '--retries',  type=int,   default=config.DEFAULT_RETRIES,  help='Number of retries (0 to always retry)')
-    parser.add_argument('-a', '--autosave', type=int,   default=config.DEFAULT_AUTOSAVE, help='Record the data every number of new entries (0 to deactivate)')
     parser.add_argument('-d', '--released', type=bool,  default=True,             help='If it is on the list of not yet released, no information is requested')
     parser.add_argument('-p', '--steamspy', type=bool,  default=True,             help='Add SteamSpy info')
     parser.add_argument('-b', '--bucket',   type=str,   default='testbucketx11',  help='S3 bucket name')
@@ -310,5 +272,5 @@ if __name__ == "__main__":
         Log(config.INFO, 'Scraping interrupted. Progress saved.')
     finally:
         merge_chunks(bucket_name, config.UPDATE_OUTFILE)
-
+        
     Log(config.INFO, 'Done')
