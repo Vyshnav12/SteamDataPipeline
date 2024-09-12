@@ -148,13 +148,10 @@ def save_metadata_index(bucket_name, metadata):
     except Exception as e:
         logger.error(f'Error saving metadata index: {e}')
 
-def update_metadata_index(metadata, chunk):
+def update_metadata_index(metadata, new_app_ids):
     '''
     Updates the metadata index with the appIDs from the given chunk.
-
-    :param metadata: The metadata index to update, as a set of appIDs.
-    :param chunk: The chunk to update the metadata index with, as a dict.
-    :return: The updated metadata index, as a set of appIDs.
     '''
-    metadata.update(chunk.keys())
+
+    metadata.update(new_app_ids)
     return metadata

@@ -171,7 +171,7 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
 
     random.shuffle(apps)
     total = len(apps) - len(discarded_set) - len(notreleased_set) - len(metadata)
-    count, chunk_size = 0, 2000
+    count = 0
     chunk, manifest = {}, load_from_s3(bucket_name, 'manifest.json') or {'chunks': []}
     start_time = dt.datetime.now()
 
@@ -192,12 +192,10 @@ def Scraper(dataset, notreleased, discarded, args, appIDs=None):
                     if appID in notreleased_set:
                         notreleased_set.remove(appID)
 
-                    if len(chunk) >= chunk_size:
+                    if len(chunk) >= args.chunk_size:
                         manifest = save_chunk_to_s3(bucket_name, chunk, manifest)
                         metadata = update_metadata_index(metadata, set(chunk.keys()))
                         Log(config.INFO, f'Updated metadata index with chunk AppIDs. Current metadata size: {len(metadata)}')
-                        save_to_s3(bucket_name, config.NOTRELEASED_FILE, list(notreleased_set))
-                        save_to_s3(bucket_name, config.DISCARDED_FILE, list(discarded_set))
                         chunk.clear()
                 elif status == 'not_released':
                     if appID not in notreleased_set:
@@ -247,6 +245,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--released', type=bool,  default=True,             help='If it is on the list of not yet released, no information is requested')
     parser.add_argument('-p', '--steamspy', type=bool,  default=True,             help='Add SteamSpy info')
     parser.add_argument('-b', '--bucket',   type=str,   default='testbucketx11',  help='S3 bucket name')
+    parser.add_argument('-c', '--chunk_size', type=int, default=2000,             help='Size of chunks for processing')
     args = parser.parse_args()
     random.seed(time.time())
 
