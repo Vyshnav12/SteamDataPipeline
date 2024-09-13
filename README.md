@@ -60,7 +60,7 @@ SteamDataPipeline/
 │   └── test_utils.py            # Tests for utility functions
 │   └── test_api.py              # Tests for API functions
 ├── logs/                        # Log files
-├── data/                        # Scraping output files (WIP - currently being populated)
+├── data/                        # Scraping output files
 ├── README.md                    # Project documentation
 └── requirements.txt             # Required libraries
 ```
