@@ -48,7 +48,7 @@ The project structure has been reorganized into logical components, facilitating
 - **Grafana**: Planned for visualization.
 
 ## Project Structure
-```
+
 SteamDataPipeline/
 ├── src/
 │   ├── utils.py                 # Data processing and S3 operations
@@ -57,13 +57,17 @@ SteamDataPipeline/
 │   └── api.py                   # API interaction functions
 ├── tests/                       # Unit tests
 │   ├── test_scraper.py          # Tests for scraper
-│   └── test_utils.py            # Tests for utility functions
+│   ├── test_utils.py            # Tests for utility functions
 │   └── test_api.py              # Tests for API functions
 ├── logs/                        # Log files
 ├── data/                        # Scraping output files
+├── duckdb/                      # DuckDB related files
+│   ├── sql.py                   # SQL operations script
+│   ├── steam_games.duckdb       # DuckDB database file
+│   └── test.ipynb               # Jupyter notebook for testing queries
+├── proj_dbt/                    # DBT project folder
 ├── README.md                    # Project documentation
 └── requirements.txt             # Required libraries
-```
 
 ## Installation
 
