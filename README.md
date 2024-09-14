@@ -54,7 +54,7 @@ SteamDataPipeline/
 ├── logs/                        # Log files
 ├── data/                        # Scraping output files
 ├── duckdb/                      # DuckDB related files
-│   ├── sql.py                   # SQL operations script
+│   ├── steam_games_db_setup.py  # DuckDB setup script
 │   ├── steam_games.duckdb       # DuckDB database file
 │   └── test.ipynb               # Jupyter notebook for testing queries
 ├── steam_games_dbt/             # DBT project folder
