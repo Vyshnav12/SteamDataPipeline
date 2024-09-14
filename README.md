@@ -40,7 +40,7 @@ This pipeline is designed to efficiently scrape and process data from Steam and 
 - **Grafana**: Used for visualization.
 
 ## Project Structure
-
+```
 SteamDataPipeline/
 ├── src/
 │   ├── utils.py                 # Data processing and S3 operations
@@ -60,6 +60,7 @@ SteamDataPipeline/
 ├── steam_games_dbt/             # DBT project folder
 ├── README.md                    # Project documentation
 └── requirements.txt             # Required libraries
+```
 
 Details regarding the DBT project can be found [here](steam_games_dbt/README.md).
 
