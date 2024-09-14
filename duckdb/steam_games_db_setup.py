@@ -7,7 +7,6 @@ with open('data/steam_games.json', 'r') as file:
 def clean_data(games_data):
     games = [
         (
-            int(game_id),
             game_data.get('name', ''),
             game_data.get('release_date', ''),
             game_data.get('required_age', 0),
@@ -45,7 +44,6 @@ def create_table(data):
     con = duckdb.connect('duckdb/steam_games.duckdb')
     con.execute('''
         CREATE TABLE games (
-            game_id INTEGER,
             name VARCHAR,
             release_date VARCHAR,
             required_age INTEGER,
@@ -81,7 +79,7 @@ def create_table(data):
 def insert_data(data):
     con = duckdb.connect('duckdb/steam_games.duckdb')
     con.executemany('''
-        INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', data)
     con.close()
 

@@ -1,5 +1,5 @@
 WITH source AS (
-    SELECT * FROM games  -- Direct reference to the table
+    SELECT * FROM games
 )
 
 SELECT

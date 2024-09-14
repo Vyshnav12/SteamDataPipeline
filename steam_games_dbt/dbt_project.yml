@@ -31,8 +31,9 @@ clean-targets:
 # files using the `{{ config(...) }}` macro.
 models:
   steam_games_dbt:
-    +materialized: view
     staging:
       +materialized: view
-    core:
+    intermediate:
+      +materialized: view
+    marts:
       +materialized: table
