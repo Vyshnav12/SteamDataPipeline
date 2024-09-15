@@ -167,6 +167,25 @@ docker build -t steam-data-pipeline .
 docker run -d -p 8080:8080 steam-data-pipeline
 ```
 
+### Running the Full Pipeline
+
+To run the entire pipeline automatically:
+
+2. Execute the pipeline:
+   ```bash
+   ./run_pipeline.sh
+   ```
+
+This script builds all Docker images and runs the services in the correct order: Scraper, DuckDB setup, DBT models
+
+For manual execution of individual services:
+
+```bash
+docker-compose run scraper
+docker-compose run duckdb_setup
+docker-compose run dbt
+``
+
 ## Future Enhancements
 
 I plan to expand SteamDataPipeline with the following features:
