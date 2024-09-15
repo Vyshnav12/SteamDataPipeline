@@ -1,12 +1,24 @@
 import duckdb
 import json
+import os
+import sys
+from tqdm import tqdm
 
-with open('data/steam_games.json', 'r') as file:
-    data = json.load(file)
+def load_data(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(f"Error: Invalid JSON in file {file_path}")
+        sys.exit(1)
 
 def clean_data(games_data):
-    games = [
-        (
+    cleaned = []
+    for game_id, game_data in tqdm(games_data.items(), desc="Cleaning data"):
+        cleaned.append((
             game_data.get('name', ''),
             game_data.get('release_date', ''),
             game_data.get('required_age', 0),
@@ -35,15 +47,12 @@ def clean_data(games_data):
             game_data.get('median_playtime_forever', 0),
             game_data.get('median_playtime_2weeks', 0),
             game_data.get('peak_ccu', 0)
-        )
-        for game_id, game_data in games_data.items()
-    ]
-    return games
+        ))
+    return cleaned
 
-def create_table(data):
-    con = duckdb.connect('duckdb/steam_games.duckdb')
+def create_table(con):
     con.execute('''
-        CREATE TABLE games (
+        CREATE TABLE IF NOT EXISTS games (
             name VARCHAR,
             release_date VARCHAR,
             required_age INTEGER,
@@ -73,21 +82,43 @@ def create_table(data):
             median_playtime_2weeks INTEGER,
             peak_ccu INTEGER
         )
-        ''')
-    con.close()
+    ''')
+
+def insert_data(con, data):
+    batch_size = 1000
+    for i in tqdm(range(0, len(data), batch_size), desc="Inserting data"):
+        batch = data[i:i+batch_size]
+        con.executemany('''
+            INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', batch)
+
+def main():
+    print("Script is running!")
     
-def insert_data(data):
-    con = duckdb.connect('duckdb/steam_games.duckdb')
-    con.executemany('''
-        INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', data)
-    con.close()
+    base_dir = '/app'
+    data_file = os.path.join(base_dir, 'data', 'steam_games.json')
+    db_file = os.path.join(base_dir, 'duckdb', 'steam_games.duckdb')
+
+    print(f"Loading data from {data_file}")
+    data = load_data(data_file)
+
+    cleaned_data = clean_data(data)
+    print(f"Number of games: {len(cleaned_data)}")
+
+    print(f"Connecting to database at {db_file}")
+    con = duckdb.connect(db_file)
+
+    try:
+        con.begin()
+        create_table(con)
+        insert_data(con, cleaned_data)
+        con.commit()
+        print("Data inserted successfully")
+    except Exception as e:
+        con.rollback()
+        print(f"An error occurred: {e}")
+    finally:
+        con.close()
 
 if __name__ == "__main__":
-    cleaned_data = clean_data(data)
-    print(f"Number of elements in a single game's data: {len(cleaned_data[0])}")
-    create_table(cleaned_data)
-    insert_data(cleaned_data)
-    con = duckdb.connect('duckdb/steam_games.duckdb')
-    print(con.execute("SELECT * FROM games").fetchdf().head())
-    con.close()
+    main()
