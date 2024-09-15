@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/DBT-FF694B?logo=dbt&logoColor=white" alt="DBT" />
   <img src="https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=black" alt="DuckDB" />
   <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" alt="Grafana" />
-  <img src="https://img.shields.io/badge/Release-v1.0-green?logo=rocket&logoColor=white" alt="Release" />
+  <img src="https://img.shields.io/badge/Release-v2.0-cyan?logo=rocket&logoColor=white" alt="Release" />
   <img src="https://img.shields.io/github/license/Vyshnav12/dynamic-github-readme-updater" alt="License" />
 </p>
 
