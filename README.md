@@ -1,10 +1,14 @@
 # SteamDataPipeline
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Language-Python-blue" alt="Python" />
+  <img src="https://img.shields.io/badge/Language-Python-blue?logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Steam-API-171A21?logo=steam&logoColor=white" alt="Steam" />
-  <img src="https://img.shields.io/badge/AWS-S3-28a745?logo=amazon-aws&logoColor=white" alt="AWS S3" />
-  <img src="https://img.shields.io/badge/AWS-EC2-ff9900?logo=amazon-aws&logoColor=white" alt="AWS EC2" />
+  <img src="https://img.shields.io/badge/AWS-S3-569A31?logo=amazon-s3&logoColor=white" alt="AWS S3" />
+  <img src="https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazon-ec2&logoColor=white" alt="AWS EC2" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/DBT-FF694B?logo=dbt&logoColor=white" alt="DBT" />
+  <img src="https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=black" alt="DuckDB" />
+  <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" alt="Grafana" />
   <img src="https://img.shields.io/badge/Release-v1.0-green?logo=rocket&logoColor=white" alt="Release" />
   <img src="https://img.shields.io/github/license/Vyshnav12/dynamic-github-readme-updater" alt="License" />
 </p>
@@ -21,7 +25,8 @@ The SteamDataPipeline integrates multiple components to scrape, store, and analy
    - **Retry Logic and Backoff Strategies:** The scraper includes retry logic for handling API failures and rate-limiting.
 - **AWS Integration:** Collected data is stored on Amazon S3.
 - **Monitoring:** The pipeline utilizes logs to monitor the scraping process and AWS CloudWatch for further insights.
-- **Data Modeling:** DBT is used to model and transform the data stored in S3 for easier analysis.
+- **Data Modeling:** DBT is used for data modeling, including analyses and tests.
+- **Containerization:** Docker is used for containerizing the application, ensuring consistency across environments.
 - **Data Warehousing:** DuckDB is used for data warehousing.
 - **Data Visualization:** Grafana is connected to the data pipeline to provide real-time insights into the scraped data.
 - **Automated Scheduling:** AWS Lambda used to automate the scraper, ensuring data is collected at regular intervals.
@@ -31,13 +36,14 @@ The SteamDataPipeline integrates multiple components to scrape, store, and analy
 This pipeline is designed to efficiently scrape and process data from Steam and SteamSpy. It's a heavily modified version of [FronkonGames' Steam Games Scraper](https://github.com/FronkonGames/Steam-Games-Scraper), with significant enhancements for improved performance, scalability, and code readability.
 
 ## Technologies Used
-- **Python 3.12.5**: The primary language for the scraper.
+- **Python 3.9**: The primary language for the scraper and data processing.
 - **AWS S3**: To store the scraped data.
 - **AWS EC2**: Used for running the scraper to handle the large Steam dataset.
-- **AWS Lambda**: Planned for future automated updates.
 - **DuckDB**: Used for data warehousing.
-- **DBT**: Used for data modeling.
+- **DBT**: Used for data modeling, including analyses and tests.
 - **Grafana**: Used for visualization.
+- **Docker**: Used for containerizing the application.
+
 
 ## Project Structure
 ```
@@ -58,6 +64,8 @@ SteamDataPipeline/
 │   ├── steam_games.duckdb       # DuckDB database file
 │   └── test.ipynb               # Jupyter notebook for testing queries
 ├── steam_games_dbt/             # DBT project folder
+├── Dockerfile                   # Dockerfile for Docker container
+├── docker-compose.yml           # Docker Compose file for container orchestration (WIP)
 ├── README.md                    # Project documentation
 └── requirements.txt             # Required libraries
 ```
@@ -130,6 +138,34 @@ Replace `test_utils.py` with the name of the test file you want to run.
 ## Data Storage
 
 This project primarily relies on AWS S3 for data storage. However, you can modify the `utils.py` file to enable local storage if needed.
+
+## Data Modeling with DBT
+
+The `steam_games_dbt/` directory contains the DBT project for data modeling. We've added the following:
+
+- **Models:** Located in `steam_games_dbt/models/`, these transform the raw data into more usable formats.
+- **Analyses:** Found in `steam_games_dbt/analyses/`, these provide insights into the data.
+- **Tests:** Located in `steam_games_dbt/tests/`, these ensure data quality and model accuracy.
+
+To run DBT:
+
+```bash
+cd steam_games_dbt
+dbt run
+dbt test
+dbt compile
+```
+
+## Docker Containerization
+
+We've containerized the application using Docker to ensure consistency across different environments. The `Dockerfile` and `docker-compose.yml` files are in the root directory.
+
+To build and run the Docker container:
+
+```bash
+docker build -t steam-data-pipeline .
+docker run -d -p 8080:8080 steam-data-pipeline
+```
 
 ## Future Enhancements
 
