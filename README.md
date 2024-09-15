@@ -141,7 +141,7 @@ This project primarily relies on AWS S3 for data storage. However, you can modif
 
 ## Data Modeling with DBT
 
-The `steam_games_dbt/` directory contains the DBT project for data modeling. We've added the following:
+The `steam_games_dbt/` directory contains the DBT project for data modeling. It contains the following:
 
 - **Models:** Located in `steam_games_dbt/models/`, these transform the raw data into more usable formats.
 - **Analyses:** Found in `steam_games_dbt/analyses/`, these provide insights into the data.
@@ -158,7 +158,7 @@ dbt compile
 
 ## Docker Containerization
 
-We've containerized the application using Docker to ensure consistency across different environments. The `Dockerfile` and `docker-compose.yml` files are in the root directory.
+The `Dockerfile` and `docker-compose.yml` files are in the root directory.
 
 To build and run the Docker container:
 
