@@ -188,7 +188,7 @@ docker-compose run dbt
 After exporting the data from DuckDB to PostgreSQL, a Grafana dashboard has been implemented to provide real-time insights into the scraped Steam data.
 
 <p align="center">
-  <img src="assets/grafana-dash.gif" alt="Grafana Dashboard" />
+  <img src="assets/grafana-steaminfo.png" alt="Grafana Dashboard" />
 </p>
 
 The Grafana dashboard offers interactive visualizations of various metrics and trends from the Steam dataset, allowing for easy analysis and decision-making based on the collected data.
