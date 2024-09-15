@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazon-ec2&logoColor=white" alt="AWS EC2" />
   <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/DBT-FF694B?logo=dbt&logoColor=white" alt="DBT" />
-  <img src="https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=black" alt="DuckDB" />
+  <img src="https://img.shields.io/badge/DuckDB-4D96FF?logo=duckdb&logoColor=white" alt="DuckDB" />
   <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" alt="Grafana" />
 </p>
 
