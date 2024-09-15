@@ -74,6 +74,17 @@ SteamDataPipeline/
 └── requirements.txt             # Required libraries
 ```
 
+## Data Flow
+
+The current data flow in the pipeline is as follows:
+
+1. Data is scraped from Steam and SteamSpy APIs
+2. Scraped data is stored in AWS S3
+3. Data is loaded into DuckDB for warehousing and initial processing
+4. DBT models are applied to transform and analyze the data
+5. Processed data is exported from DuckDB to PostgreSQL
+6. Grafana connects to PostgreSQL to visualize the data in real-time dashboards
+
 ## Installation
 
 To get started with SteamDataPipeline, you'll need to:
@@ -188,7 +199,15 @@ docker-compose run dbt
 After exporting the data from DuckDB to PostgreSQL, a Grafana dashboard has been implemented to provide real-time insights into the scraped Steam data.
 
 <p align="center">
+<<<<<<< HEAD
   <img src="assets/grafana-steaminfo.png" alt="Grafana Dashboard" />
+=======
+  
+
+https://github.com/user-attachments/assets/a7698d2c-fd86-46f3-a3c9-1f11864a1d9d
+
+
+>>>>>>> 82d018048e755d483563915424533e43ff61c13c
 </p>
 
 The Grafana dashboard offers interactive visualizations of various metrics and trends from the Steam dataset, allowing for easy analysis and decision-making based on the collected data.
@@ -199,17 +218,6 @@ To access the Grafana dashboard:
 3. Log in to Grafana and navigate to the Steam Data Pipeline dashboard
 
 For detailed instructions on setting up and using the Grafana dashboard, please refer to the [Grafana Documentation](docs/grafana_setup.md).
-
-## Data Flow
-
-The current data flow in the pipeline is as follows:
-
-1. Data is scraped from Steam and SteamSpy APIs
-2. Scraped data is stored in AWS S3
-3. Data is loaded into DuckDB for warehousing and initial processing
-4. DBT models are applied to transform and analyze the data
-5. Processed data is exported from DuckDB to PostgreSQL
-6. Grafana connects to PostgreSQL to visualize the data in real-time dashboards
 
 ## Future Enhancements
 
