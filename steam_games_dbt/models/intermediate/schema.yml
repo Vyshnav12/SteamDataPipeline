@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: dim_games
+    columns:
+      - name: game_id
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: release_date
+        tests:
+          - not_null
+
+  - name: stg_games
+    columns:
+      - name: name
+        tests:
+          - unique
+          - not_null
+      - name: price
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 'positive']
+
+  - name: game_playtime_ranking
+    columns:
+      - name: rank
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              values: [1, 100]
+              quote: false
+      - name: avg_playtime_hours
+        tests:
+          - not_null
+          - positive_value
+
+  - name: user_score_ratio
+    columns:
+      - name: name
+        tests:
+          - unique
+          - not_null
+      - name: score_ratio
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+              inclusive: true
+
+  - name: support_email_availability
+    columns:
+      - name: has_support_email
+        tests:
+          - accepted_values:
+              values: ['True', 'False']
+      - name: percentage
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 100]
+              quote: false
+              inclusive: true
