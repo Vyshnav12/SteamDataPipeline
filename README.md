@@ -186,7 +186,35 @@ For manual execution of individual services:
 docker-compose run scraper
 docker-compose run duckdb_setup
 docker-compose run dbt
-``
+```
+
+## Data Visualization with Grafana
+
+After exporting the data from DuckDB to PostgreSQL, a Grafana dashboard has been implemented to provide real-time insights into the scraped Steam data.
+
+<p align="center">
+  <img src="assets/grafana-dash.gif" alt="Grafana Dashboard" />
+</p>
+
+The Grafana dashboard offers interactive visualizations of various metrics and trends from the Steam dataset, allowing for easy analysis and decision-making based on the collected data.
+
+To access the Grafana dashboard:
+1. Ensure that PostgreSQL is running and contains the exported data from DuckDB
+2. Start the Grafana server
+3. Log in to Grafana and navigate to the Steam Data Pipeline dashboard
+
+For detailed instructions on setting up and using the Grafana dashboard, please refer to the [Grafana Documentation](docs/grafana_setup.md).
+
+## Data Flow
+
+The current data flow in the pipeline is as follows:
+
+1. Data is scraped from Steam and SteamSpy APIs
+2. Scraped data is stored in AWS S3
+3. Data is loaded into DuckDB for warehousing and initial processing
+4. DBT models are applied to transform and analyze the data
+5. Processed data is exported from DuckDB to PostgreSQL
+6. Grafana connects to PostgreSQL to visualize the data in real-time dashboards
 
 ## Future Enhancements
 
@@ -206,4 +234,6 @@ Special thanks to [Martin Bustos aka FronkonGames](https://github.com/FronkonGam
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+
 
