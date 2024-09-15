@@ -164,13 +164,6 @@ dbt compile
 
 The `Dockerfile` and `docker-compose.yml` files are in the root directory.
 
-To build and run the Docker container:
-
-```bash
-docker build -t steam-data-pipeline .
-docker run -d -p 8080:8080 steam-data-pipeline
-```
-
 ### Running the Full Pipeline
 
 To run the entire pipeline automatically:
