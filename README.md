@@ -3,14 +3,16 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Language-Python-blue?logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Steam-API-171A21?logo=steam&logoColor=white" alt="Steam" />
+  <img src="https://img.shields.io/badge/Release-v2.0-cyan?logo=rocket&logoColor=white" alt="Release" />
+  <img src="https://img.shields.io/github/license/Vyshnav12/dynamic-github-readme-updater" alt="License" />
+</p>
+<p align="center">
   <img src="https://img.shields.io/badge/AWS-S3-569A31?logo=amazon-s3&logoColor=white" alt="AWS S3" />
   <img src="https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazon-ec2&logoColor=white" alt="AWS EC2" />
   <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/DBT-FF694B?logo=dbt&logoColor=white" alt="DBT" />
   <img src="https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=black" alt="DuckDB" />
   <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" alt="Grafana" />
-  <img src="https://img.shields.io/badge/Release-v2.0-cyan?logo=rocket&logoColor=white" alt="Release" />
-  <img src="https://img.shields.io/github/license/Vyshnav12/dynamic-github-readme-updater" alt="License" />
 </p>
 
 This project creates a scalable data pipeline that collects and processes data from both Steam and SteamSpy, stores it in AWS S3, and provides tools for data analysis and visualization. This pipeline can be used for analyzing trends in the gaming industry, creating visual dashboards, and more.
