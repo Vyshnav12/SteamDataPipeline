@@ -68,6 +68,8 @@ SteamDataPipeline/
 ├── steam_games_dbt/             # DBT project folder
 ├── Dockerfile                   # Dockerfile for Docker container
 ├── docker-compose.yml           # Docker Compose file for container orchestration (WIP)
+├── run_duckdb.sh                # Script to run DuckDB in Docker
+├── run_pipeline.sh              # Script to run the entire pipeline
 ├── README.md                    # Project documentation
 └── requirements.txt             # Required libraries
 ```
