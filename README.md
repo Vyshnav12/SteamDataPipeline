@@ -74,8 +74,6 @@ SteamDataPipeline/
 └── requirements.txt             # Required libraries
 ```
 
-Details regarding the DBT project can be found [here](steam_games_dbt/README.md).
-
 ## Installation
 
 To get started with SteamDataPipeline, you'll need to:
@@ -159,6 +157,8 @@ dbt run
 dbt test
 dbt compile
 ```
+
+Details regarding the use of DBT in thisproject can be found [here](steam_games_dbt/README.md).
 
 ## Docker Containerization
 
