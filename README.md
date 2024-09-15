@@ -169,7 +169,7 @@ dbt test
 dbt compile
 ```
 
-Details regarding the use of DBT in thisproject can be found [here](steam_games_dbt/README.md).
+Details regarding the use of DBT in this project can be found [here](steam_games_dbt/README.md).
 
 ## Docker Containerization
 
