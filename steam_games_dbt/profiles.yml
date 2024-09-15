@@ -1,0 +1,41 @@
+steam_dbt:
+  outputs:
+    dev:
+      type: duckdb
+      path: dev.duckdb
+      threads: 1
+
+    prod:
+      type: duckdb
+      path: prod.duckdb
+      threads: 4
+
+  target: dev
+
+proj_dbt:
+  outputs:
+    dev:
+      type: duckdb
+      path: dev.duckdb
+      threads: 1
+
+    prod:
+      type: duckdb
+      path: prod.duckdb
+      threads: 4
+
+  target: dev
+  
+steam_games_dbt:
+  outputs:
+    dev:
+      type: duckdb
+      path: 'C:\Users\Vyshnav\Documents\GitHub\SteamDataPipeline\duckdb\steam_games.duckdb'
+      threads: 1
+
+    prod:
+      type: duckdb
+      path: 'C:\Users\Vyshnav\Documents\GitHub\SteamDataPipeline\duckdb\steam_games.duckdb'
+      threads: 4
+
+  target: dev
