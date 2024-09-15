@@ -8,5 +8,8 @@ SELECT
     name,
     positive,
     negative,
-    CAST(positive AS FLOAT) / NULLIF(positive + negative, 0) AS score_ratio
+    CASE
+        WHEN positive + negative = 0 THEN NULL
+        ELSE LEAST(GREATEST(CAST(positive AS FLOAT) / NULLIF(positive + negative, 0), 0), 1)
+    END AS score_ratio
 FROM source
