@@ -1,8 +1,10 @@
 import polars as pl
 import json
+import os
 
 # Load the JSON data
-with open('data/steam_games.json', 'r') as f:
+data_path = os.path.join(os.path.dirname(__file__), '../data/steam_games.json')
+with open(data_path, 'r') as f:
     data = json.load(f)
 
 # Initialize an empty list to hold processed game data
