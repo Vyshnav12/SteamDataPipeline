@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Language-Python-blue?logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Steam-API-171A21?logo=steam&logoColor=white" alt="Steam" />
-  <img src="https://img.shields.io/badge/Release-v2.0-cyan?logo=rocket&logoColor=white" alt="Release" />
+  <img src="https://img.shields.io/badge/Release-v3.0-cyan?logo=rocket&logoColor=white" alt="Release" />
   <img src="https://img.shields.io/github/license/Vyshnav12/dynamic-github-readme-updater" alt="License" />
 </p>
 <p align="center">
