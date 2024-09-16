@@ -66,7 +66,6 @@ SteamDataPipeline/
 ├── parquet_tables/              # Parquet files for processed data
 ├── Dockerfile                   # Dockerfile for Docker container
 ├── docker-compose.yml           # Docker Compose file for container orchestration
-├── run_pipeline.sh              # Script to run the entire pipeline
 ├── README.md                    # Project documentation
 └── requirements.txt             # Required libraries
 ```
