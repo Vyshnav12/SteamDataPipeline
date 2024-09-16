@@ -165,6 +165,52 @@ python -m unittest tests/test_utils.py
 
 Replace `test_utils.py` with the name of the test file you want to run.
 
+## Data Storage
+
+This project primarily relies on AWS S3 for data storage. However, you can modify the `utils.py` file to enable local storage if needed.
+
+## Data Modeling with DBT
+
+The `steam_games_dbt/` directory contains the DBT project for data modeling. It contains the following:
+
+- **Models:** Located in `steam_games_dbt/models/`, these transform the raw data into more usable formats.
+- **Analyses:** Found in `steam_games_dbt/analyses/`, these provide insights into the data.
+- **Tests:** Located in `steam_games_dbt/tests/`, these ensure data quality and model accuracy.
+
+To run DBT:
+
+```bash
+cd steam_games_dbt
+dbt run
+dbt test
+dbt compile
+```
+
+Details regarding the use of DBT in thisproject can be found [here](steam_games_dbt/README.md).
+
+## Docker Containerization
+
+The `Dockerfile` and `docker-compose.yml` files are in the root directory.
+
+### Running the Full Pipeline
+
+To run the entire pipeline automatically:
+
+2. Execute the pipeline:
+   ```bash
+   ./run_pipeline.sh
+   ```
+
+This script builds all Docker images and runs the services in the correct order: Scraper, DuckDB setup, DBT models
+
+For manual execution of individual services:
+
+```bash
+docker-compose run scraper
+docker-compose run duckdb_setup
+docker-compose run dbt
+```
+
 ## Data Visualization with Grafana
 
 After loading the data into PostgreSQL, a Grafana dashboard can be implemented to provide real-time insights into the scraped Steam data.
