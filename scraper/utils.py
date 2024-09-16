@@ -6,6 +6,8 @@ import re
 import config
 import datetime as dt
 import io
+import os
+from dotenv import load_dotenv
 
 # Initialize logging
 logging.basicConfig(
@@ -14,8 +16,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# AWS S3 client
-s3_client = boto3.client('s3')
+# Load environment variables
+load_dotenv()
+
+# Get AWS credentials from environment variables
+aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+
+# Initialize S3 client
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=aws_access_key_id,
+    aws_secret_access_key=aws_secret_access_key
+)
 
 def save_to_s3(bucket_name, key, data):
     try:
