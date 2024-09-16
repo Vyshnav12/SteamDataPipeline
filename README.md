@@ -64,9 +64,9 @@ SteamDataPipeline/
 │   └── test_api.py              # Tests for API functions
 ├── data/                        # Scraping output files
 ├── parquet_tables/              # Parquet files for processed data
-├── Dockerfile                   # Dockerfile for Docker container (WIP)
-├── docker-compose.yml           # Docker Compose file for container orchestration (WIP)
-├── run_pipeline.sh              # Script to run the entire pipeline (WIP)
+├── Dockerfile                   # Dockerfile for Docker container
+├── docker-compose.yml           # Docker Compose file for container orchestration
+├── run_pipeline.sh              # Script to run the entire pipeline
 ├── README.md                    # Project documentation
 └── requirements.txt             # Required libraries
 ```
@@ -182,12 +182,37 @@ To access the Grafana dashboard:
 
 For detailed instructions on setting up and using the Grafana dashboard, please refer to the [Grafana Documentation](docs/grafana_setup.md).
 
+## Containerization
+
+The scraper is containerized using Docker to ensure consistency across different environments and simplify deployment.
+
+### Dockerfile
+
+The `Dockerfile` in the root directory sets up the environment for the scraper:
+
+This Dockerfile:
+1. Uses Python 3.9 as the base image
+2. Sets the working directory to `/app`
+3. Installs the required Python packages
+4. Copies the project files into the container
+5. Sets the `steam_scraper.py` script as the entrypoint
+
+Add your AWS credentials to the .env file in the root directory before building the container.
+
+### Running the Containerized Scraper
+
+To run the scraper using Docker:
+
+```
+docker-compose up --build scraper
+```
+
+This command builds the Docker image and runs the scraper container. The scraper will execute with the environment variables and volumes specified in the `docker-compose.yml` file.
+
 ## Future Enhancements
 
 I plan to expand SteamDataPipeline with the following features:
 - **Additional Data Analysis**: More data analysis features will be added using Polars.
-- **Containerization**: Docker will be used for containerizing the application, ensuring consistency across environments.
-- **Automated Scheduling**: AWS Lambda used to automate the scraper, ensuring data is collected at regular intervals.
 
 ## Contributing
 
@@ -200,3 +225,5 @@ Special thanks to [Martin Bustos aka FronkonGames](https://github.com/FronkonGam
 ## License
 
 This project is licensed under the MIT [License](LICENSE).
+
+
